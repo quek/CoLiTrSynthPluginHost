@@ -1,57 +1,6 @@
 #include <Windows.h>
 #include "MainComponent.h"
 
-//==============================================================================
-MainComponent::MainComponent()
-{
-	addAndMakeVisible(checkTheTimeButton);
-	checkTheTimeButton.setButtonText("Check the time...");
-	checkTheTimeButton.onClick = [this] { click(); };
-
-	addAndMakeVisible(timeLabel);
-	timeLabel.setColour(juce::Label::backgroundColourId, juce::Colours::black);
-	timeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
-	timeLabel.setJustificationType(juce::Justification::centred);
-
-	setSize(600, 400);
-}
-
-MainComponent::~MainComponent()
-{
-	if (editor) {
-		removeChildComponent(editor.get());
-		editor.reset();
-	}
-	if (plugin) {
-		plugin->releaseResources();
-		plugin.reset();
-	}
-}
-
-//==============================================================================
-void MainComponent::paint(juce::Graphics& g)
-{
-	// (Our component is opaque, so we must completely fill the background with a solid colour)
-	g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
-
-	g.setFont(juce::Font(16.0f));
-	g.setColour(juce::Colours::white);
-	g.drawText("Hello World!", getLocalBounds(), juce::Justification::centred, true);
-}
-
-void MainComponent::resized()
-{
-	// This is called when the MainComponent is resized.
-	// If you add any child components, this is where you should
-	// update their positions.
-	checkTheTimeButton.setBounds(10, 10, getWidth() - 20, 40);
-	timeLabel.setBounds(10, 60, getWidth() - 20, 40);
-
-	if (editor) {
-		setBounds(editor->getLocalBounds());
-	}
-}
-
 void* edit(void* component) {
 	((MainComponent*)component)->edit();
 	return nullptr;
@@ -96,9 +45,19 @@ void proc(MainComponent* component) {
 	CloseHandle(hPipe);
 }
 
-void MainComponent::click()
+//==============================================================================
+MainComponent::MainComponent()
 {
-	DBG("clicked!");
+	addAndMakeVisible(checkTheTimeButton);
+	checkTheTimeButton.setButtonText("Check the time...");
+	checkTheTimeButton.onClick = [this] { click(); };
+
+	addAndMakeVisible(timeLabel);
+	timeLabel.setColour(juce::Label::backgroundColourId, juce::Colours::black);
+	timeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+	timeLabel.setJustificationType(juce::Justification::centred);
+
+	setSize(600, 400);
 
 	formatManager.addDefaultFormats();
 
@@ -126,6 +85,49 @@ void MainComponent::click()
 
 	std::thread t(proc, this);
 	t.detach();
+
+}
+
+MainComponent::~MainComponent()
+{
+	if (editor) {
+		removeChildComponent(editor.get());
+		editor.reset();
+	}
+	if (plugin) {
+		plugin->releaseResources();
+		plugin.reset();
+	}
+}
+
+//==============================================================================
+void MainComponent::paint(juce::Graphics& g)
+{
+	// (Our component is opaque, so we must completely fill the background with a solid colour)
+	g.fillAll(getLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId));
+
+	g.setFont(juce::Font(16.0f));
+	g.setColour(juce::Colours::white);
+	g.drawText("Hello World!", getLocalBounds(), juce::Justification::centred, true);
+}
+
+void MainComponent::resized()
+{
+	// This is called when the MainComponent is resized.
+	// If you add any child components, this is where you should
+	// update their positions.
+	checkTheTimeButton.setBounds(10, 10, getWidth() - 20, 40);
+	timeLabel.setBounds(10, 60, getWidth() - 20, 40);
+
+	if (editor) {
+		setBounds(editor->getLocalBounds());
+	}
+}
+
+void MainComponent::click()
+{
+	DBG("clicked!");
+
 }
 
 void MainComponent::edit() {
