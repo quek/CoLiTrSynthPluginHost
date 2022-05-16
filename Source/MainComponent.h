@@ -19,6 +19,7 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
+    std::unique_ptr<juce::AudioPluginInstance> plugin;
 private:
     //==============================================================================
     // Your private member variables go here...
@@ -27,7 +28,6 @@ private:
 
     juce::KnownPluginList knownPluginList;
     juce::AudioPluginFormatManager formatManager;
-    std::unique_ptr<juce::AudioPluginInstance> plugin;
     std::unique_ptr<juce::AudioProcessorEditor> editor;
 
     void click();

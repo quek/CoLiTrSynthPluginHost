@@ -18,29 +18,52 @@ void proc(MainComponent* component) {
 		DBG("Can not create file, as PIPE\r\n");
 	}
 
-	byte buffer[10];
-	WORD len = 0;
+	byte buffer[1024 * 10];
+	WORD readLength = 0;
+	WORD writeLength = 0;
+	juce::MidiBuffer midiBuffer;
+	const int midiEventSize = 7;
+	juce::AudioBuffer<float> audioBuffer(2, 1024);
 
-	for (int i = 0; i < 1000; ++i) {
+	while (true) {
 		// ブロックする
-		ReadFile(hPipe, buffer, 10, (LPDWORD)&len, nullptr);
-		DBG("ReadFile " << buffer[0] << " len " << std::to_string(len));
-		if (len == 0) {
+		ReadFile(hPipe, buffer, 1, (LPDWORD)&readLength, nullptr);
+		if (readLength == 0) {
 			continue;
 		}
 		auto command = buffer[0];
+		DBG("command " << buffer[0]);
 		switch (command) {
 		case 1:
 			juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
 			break;
+		case 2:
+			midiBuffer.clear();
+			ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
+			int len = buffer[1] * 0x100 + buffer[0];
+			if (len > 0) {
+				ReadFile(hPipe, buffer, len * midiEventSize, (LPDWORD)&readLength, nullptr);
+				for (int i = 0; i < len; ++i) {
+					byte event = buffer[i * midiEventSize];
+					int channel = buffer[i * midiEventSize + 1];
+					int note = buffer[i * midiEventSize + 2];
+					float velocity = buffer[i * midiEventSize + 3] / 255.0;
+					int frame = buffer[i * midiEventSize + 4] * 0x100 + buffer[i * midiEventSize + 4];
+					switch (event) {
+					case 0x90:
+						midiBuffer.addEvent(juce::MidiMessage::noteOn(channel, note, velocity), frame);
+						break;
+					case 0x80:
+						midiBuffer.addEvent(juce::MidiMessage::noteOff(channel, note, velocity), frame);
+						break;
+					}
+				}
+			}
+			component->plugin->processBlock(audioBuffer, midiBuffer);
+			WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+			WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+			break;
 		}
-		buffer[0] = 7;
-		buffer[1] = 3;
-		// ブロックする
-		WriteFile(hPipe, buffer, 10, (LPDWORD)&len, nullptr);
-		DBG("WriteFile " << std::to_string(len));
-		ReadFile(hPipe, buffer, 10, (LPDWORD)&len, nullptr);
-		DBG("ReadFile " << buffer[0] << " len " << std::to_string(len));
 	}
 	CloseHandle(hPipe);
 }
@@ -127,7 +150,7 @@ void MainComponent::resized()
 void MainComponent::click()
 {
 	DBG("clicked!");
-
+	edit();
 }
 
 void MainComponent::edit() {
