@@ -60,6 +60,8 @@ void proc(MainComponent* component) {
 				}
 			}
 			component->plugin->processBlock(audioBuffer, midiBuffer);
+			DBG(audioBuffer.getSample(0, 0));
+			DBG(audioBuffer.getSample(1, 0));
 			WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
 			WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
 			break;
@@ -95,7 +97,7 @@ MainComponent::MainComponent()
 	juce::OwnedArray<juce::PluginDescription> typesFound;
 	knownPluginList.scanAndAddDragAndDroppedFiles(formatManager, files, typesFound);
 	std::cout << knownPluginList.getNumTypes() << " " << typesFound.size() << std::endl;
-	auto desc = knownPluginList.getTypes()[0];
+	auto desc = knownPluginList.getTypes()[1];
 	std::cout << desc.descriptiveName << std::endl;
 
 
