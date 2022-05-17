@@ -22,7 +22,7 @@ void proc(MainComponent* component) {
 	WORD readLength = 0;
 	WORD writeLength = 0;
 	juce::MidiBuffer midiBuffer;
-	const int midiEventSize = 7;
+	const int midiEventSize = 6;
 	juce::AudioBuffer<float> audioBuffer(2, 1024);
 
 	while (true) {
@@ -48,7 +48,7 @@ void proc(MainComponent* component) {
 					int channel = buffer[i * midiEventSize + 1];
 					int note = buffer[i * midiEventSize + 2];
 					float velocity = buffer[i * midiEventSize + 3] / 127.0f;
-					int frame = buffer[i * midiEventSize + 4] * 0x100 + buffer[i * midiEventSize + 4];
+					int frame = buffer[i * midiEventSize + 5] * 0x100 + buffer[i * midiEventSize + 4];
 					switch (event) {
 					case 0x90:
 						midiBuffer.addEvent(juce::MidiMessage::noteOn(channel, note, velocity), frame);
@@ -59,6 +59,7 @@ void proc(MainComponent* component) {
 					}
 				}
 			}
+			audioBuffer.clear();
 			component->plugin->processBlock(audioBuffer, midiBuffer);
 			DBG(audioBuffer.getSample(0, 0));
 			DBG(audioBuffer.getSample(1, 0));
