@@ -72,7 +72,7 @@ void proc(MainComponent* component) {
 }
 
 //==============================================================================
-MainComponent::MainComponent()
+MainComponent::MainComponent(juce::AudioPluginFormatManager& fm) : formatManager(fm)
 {
 	addAndMakeVisible(checkTheTimeButton);
 	checkTheTimeButton.setButtonText("Check the time...");
@@ -85,7 +85,6 @@ MainComponent::MainComponent()
 
 	setSize(600, 400);
 
-	formatManager.addDefaultFormats();
 
 	std::cout << knownPluginList.getNumTypes() << std::endl;
 	// std::unique_ptr<juce::PluginDescription, std::default_delete<juce::PluginDescription>> desc = knownPluginList.getTypeForFile("C:\\Program Files\\Common Files\\VST3\\Vital.vst3");

@@ -4,6 +4,17 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="G24nmL" name="PluginHost">
     <GROUP id="{044FEFFE-A1D9-CC76-B7E0-7BEEF49AD054}" name="Source">
+      <FILE id="X1Uy3i" name="CustomPluginListComponent.cpp" compile="1"
+            resource="0" file="Source/CustomPluginListComponent.cpp"/>
+      <FILE id="ihQwpR" name="CustomPluginListComponent.h" compile="0" resource="0"
+            file="Source/CustomPluginListComponent.h"/>
+      <FILE id="w1By6y" name="Main.h" compile="0" resource="0" file="Source/Main.h"/>
+      <FILE id="Y4tsWK" name="MainWindow.cpp" compile="1" resource="0" file="Source/MainWindow.cpp"/>
+      <FILE id="t7d5kZ" name="MainWindow.h" compile="0" resource="0" file="Source/MainWindow.h"/>
+      <FILE id="IDa4yp" name="PluginListWindow.cpp" compile="1" resource="0"
+            file="Source/PluginListWindow.cpp"/>
+      <FILE id="qYQTQX" name="PluginListWindow.h" compile="0" resource="0"
+            file="Source/PluginListWindow.h"/>
       <FILE id="Yq2byX" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
       <FILE id="fPRkap" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="e4tigw" name="MainComponent.cpp" compile="1" resource="0"
