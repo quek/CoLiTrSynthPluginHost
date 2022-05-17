@@ -47,7 +47,7 @@ void proc(MainComponent* component) {
 					byte event = buffer[i * midiEventSize];
 					int channel = buffer[i * midiEventSize + 1];
 					int note = buffer[i * midiEventSize + 2];
-					float velocity = buffer[i * midiEventSize + 3] / 255.0;
+					float velocity = buffer[i * midiEventSize + 3] / 127.0f;
 					int frame = buffer[i * midiEventSize + 4] * 0x100 + buffer[i * midiEventSize + 4];
 					switch (event) {
 					case 0x90:
@@ -97,7 +97,7 @@ MainComponent::MainComponent()
 	juce::OwnedArray<juce::PluginDescription> typesFound;
 	knownPluginList.scanAndAddDragAndDroppedFiles(formatManager, files, typesFound);
 	std::cout << knownPluginList.getNumTypes() << " " << typesFound.size() << std::endl;
-	auto desc = knownPluginList.getTypes()[1];
+	auto desc = knownPluginList.getTypes()[2];
 	std::cout << desc.descriptiveName << std::endl;
 
 
@@ -106,6 +106,7 @@ MainComponent::MainComponent()
 	plugin = formatManager.createPluginInstance(desc, 48000, 1024,
 		errorMessage);
 	DBG("after createPluginInstance " << " :[" << errorMessage << "]");
+	plugin->enableAllBuses();
 	plugin->prepareToPlay(48000, 1024);
 
 	std::thread t(proc, this);
