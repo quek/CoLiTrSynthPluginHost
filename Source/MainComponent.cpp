@@ -204,4 +204,3 @@ void MainComponent::play() {
 		sample_pos_ += 1024;
 	}
 }
-

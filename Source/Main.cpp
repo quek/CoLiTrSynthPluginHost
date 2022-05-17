@@ -150,6 +150,33 @@ public:
 
 	void handleAsyncUpdate() override
 	{
+        juce::File fileToOpen;
+
+       #if JUCE_ANDROID || JUCE_IOS
+        fileToOpen = PluginGraph::getDefaultGraphDocumentOnMobile();
+       #else
+        for (int i = 0; i < getCommandLineParameterArray().size(); ++i)
+        {
+            fileToOpen = juce::File::getCurrentWorkingDirectory().getChildFile (getCommandLineParameterArray()[i]);
+
+            if (fileToOpen.existsAsFile())
+                break;
+        }
+       #endif
+
+        if (! fileToOpen.existsAsFile())
+        {
+            juce::RecentlyOpenedFilesList recentFiles;
+            recentFiles.restoreFromString (getAppProperties().getUserSettings()->getValue ("recentFilterGraphFiles"));
+
+            if (recentFiles.getNumFiles() > 0)
+                fileToOpen = recentFiles.getFile (0);
+        }
+
+        //if (fileToOpen.existsAsFile())
+        //    if (auto* graph = mainWindow->graphHolder.get())
+        //        if (auto* ioGraph = graph->graph.get())
+        //            ioGraph->loadFrom (fileToOpen, true);
 	}
 
 	void shutdown() override
