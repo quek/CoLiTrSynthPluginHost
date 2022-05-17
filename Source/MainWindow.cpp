@@ -168,17 +168,21 @@ MainWindow::MainWindow()
 #endif
 
 	setTopLeftPosition(60, 60);
-	setVisible(true);
 
 	knownPluginList.setCustomScanner(std::make_unique<CustomPluginScanner>());
 
 	if (auto savedPluginList = getAppProperties().getUserSettings()->getXmlValue("pluginList"))
 		knownPluginList.recreateFromXml(*savedPluginList);
 
+    knownPluginList.addChangeListener (this);
 
+	// ŒŸØ‚Ì‚½‚ß‚Æ‚è‚ ‚¦‚¸‚±‚±‚ÅŠJ‚­
 	if (pluginListWindow == nullptr)
 		pluginListWindow.reset(new PluginListWindow(*this, formatManager));
 	pluginListWindow->toFront(true);
+
+
+	setVisible(true);
 }
 
 MainWindow::~MainWindow()
@@ -210,5 +214,10 @@ void MainWindow::changeListenerCallback(juce::ChangeBroadcaster* changed)
 			getAppProperties().saveIfNeeded();
 		}
 	}
+}
+
+void MainWindow::tryToQuitApplication()
+{
+	juce::JUCEApplication::quit();
 }
 
