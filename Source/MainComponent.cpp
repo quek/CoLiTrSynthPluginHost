@@ -7,7 +7,9 @@ void* edit(void* component) {
 }
 
 void proc(MainComponent* component) {
-	HANDLE hPipe = CreateFile("\\\\.\\pipe\\pluin-host",
+	std::string path("\\\\.\\pipe\\pluin-host");
+	path += std::to_string(getpid());
+	HANDLE hPipe = CreateFile(path.c_str(),
 		(GENERIC_READ | GENERIC_WRITE),
 		0,
 		NULL,
