@@ -123,6 +123,8 @@ private:
 			owner.pluginDescription = nullptr;
 			owner.gotResponse = true;
 			owner.connectionLost = true;
+			owner.connectionLost = true;
+			owner.connectionLost = true;
 			owner.condvar.notify_one();
 		}
 
@@ -149,16 +151,24 @@ private:
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomPluginScanner)
 };
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(juce::String pn)
 	: juce::DocumentWindow(juce::JUCEApplication::getInstance()->getApplicationName(),
 		juce::Desktop::getInstance().getDefaultLookAndFeel()
 		.findColour(juce::ResizableWindow::backgroundColourId),
 		juce::DocumentWindow::allButtons)
+	, pluginName(pn)
 {
 	formatManager.addDefaultFormats();
 
+	knownPluginList.setCustomScanner(std::make_unique<CustomPluginScanner>());
+
+	if (auto savedPluginList = getAppProperties().getUserSettings()->getXmlValue("pluginList"))
+		knownPluginList.recreateFromXml(*savedPluginList);
+
+	knownPluginList.addChangeListener(this);
+
 	setUsingNativeTitleBar(true);
-	setContentOwned(new MainComponent(formatManager), true);
+	setContentOwned(new MainComponent(pluginName, formatManager, knownPluginList), true);
 
 #if JUCE_IOS || JUCE_ANDROID
 	setFullScreen(true);
@@ -169,17 +179,13 @@ MainWindow::MainWindow()
 
 	setTopLeftPosition(60, 60);
 
-	knownPluginList.setCustomScanner(std::make_unique<CustomPluginScanner>());
 
-	if (auto savedPluginList = getAppProperties().getUserSettings()->getXmlValue("pluginList"))
-		knownPluginList.recreateFromXml(*savedPluginList);
-
-    knownPluginList.addChangeListener (this);
-
+	/*
 	// ŒŸØ‚Ì‚½‚ß‚Æ‚è‚ ‚¦‚¸‚±‚±‚ÅŠJ‚­
 	if (pluginListWindow == nullptr)
 		pluginListWindow.reset(new PluginListWindow(*this, formatManager));
 	pluginListWindow->toFront(true);
+	*/
 
 
 	setVisible(true);

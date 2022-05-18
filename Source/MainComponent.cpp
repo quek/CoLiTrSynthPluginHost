@@ -74,7 +74,11 @@ void proc(MainComponent* component) {
 }
 
 //==============================================================================
-MainComponent::MainComponent(juce::AudioPluginFormatManager& fm) : formatManager(fm)
+MainComponent::MainComponent(
+	juce::String& pluginName,
+	juce::AudioPluginFormatManager& fm,
+	juce::KnownPluginList& kpl
+) : formatManager(fm), knownPluginList(kpl)
 {
 	addAndMakeVisible(checkTheTimeButton);
 	checkTheTimeButton.setButtonText("Check the time...");
@@ -92,24 +96,23 @@ MainComponent::MainComponent(juce::AudioPluginFormatManager& fm) : formatManager
 	// std::unique_ptr<juce::PluginDescription, std::default_delete<juce::PluginDescription>> desc = knownPluginList.getTypeForFile("C:\\Program Files\\Common Files\\VST3\\Vital.vst3");
 	//std::cout << desc << std::endl;
 
-	auto files = juce::StringArray();
-	files.add("C:\\Program Files\\Common Files\\VST3\\Vital.vst3");
-	files.add("C:\\Program Files\\Common Files\\VST3\\MeldaProduction\\MSoundFactory.vst3");
-	files.add("C:\\Program Files\\Common Files\\VST3\\Dexed.vst3");
-	juce::OwnedArray<juce::PluginDescription> typesFound;
-	knownPluginList.scanAndAddDragAndDroppedFiles(formatManager, files, typesFound);
-	std::cout << knownPluginList.getNumTypes() << " " << typesFound.size() << std::endl;
-	auto desc = knownPluginList.getTypes()[2];
-	std::cout << desc.descriptiveName << std::endl;
+	if (!pluginName.isEmpty()) {
+		auto types = knownPluginList.getTypes();
+		auto desc = std::find_if(types.begin(), types.end(), [pluginName](auto desc) {
+			return desc.name == pluginName; });
+		if (desc) {
+			std::cout << desc->descriptiveName << std::endl;
 
 
-	juce::String errorMessage;
+			juce::String errorMessage;
 
-	plugin = formatManager.createPluginInstance(desc, 48000, 1024,
-		errorMessage);
-	DBG("after createPluginInstance " << " :[" << errorMessage << "]");
-	plugin->enableAllBuses();
-	plugin->prepareToPlay(48000, 1024);
+			plugin = formatManager.createPluginInstance(*desc, 48000, 1024,
+				errorMessage);
+			DBG("after createPluginInstance " << " :[" << errorMessage << "]");
+			plugin->enableAllBuses();
+			plugin->prepareToPlay(48000, 1024);
+		}
+	}
 
 	std::thread t(proc, this);
 	t.detach();

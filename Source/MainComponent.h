@@ -12,7 +12,9 @@ class MainComponent : public juce::Component
 public:
 	//==============================================================================
 	MainComponent(
-		juce::AudioPluginFormatManager& formatManager
+		juce::String& pluginName,
+		juce::AudioPluginFormatManager& formatManager,
+		juce::KnownPluginList& knownPluginList
 	);
 	~MainComponent() override;
 
@@ -28,7 +30,7 @@ private:
 	juce::TextButton checkTheTimeButton;
 	juce::Label timeLabel;
 
-	juce::KnownPluginList knownPluginList;
+	juce::KnownPluginList& knownPluginList;
 	juce::AudioPluginFormatManager& formatManager;
 	std::unique_ptr<juce::AudioProcessorEditor> editor;
 

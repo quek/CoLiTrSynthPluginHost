@@ -127,8 +127,9 @@ public:
 	//==============================================================================
 	void initialise(const juce::String& commandLine) override
 	{
+		auto pluginName = getCommandLineParameters();
 		auto scannerSubprocess = std::make_unique<PluginScannerSubprocess>();
-
+		// TODO ‚±‚ê‚¢‚ç‚È‚¢‚Ì‚Å‚ÍH
 		if (scannerSubprocess->initialiseFromCommandLine(commandLine, processUID))
 		{
 			storedScannerSubprocess = std::move(scannerSubprocess);
@@ -145,38 +146,38 @@ public:
 		appProperties.reset(new juce::ApplicationProperties());
 		appProperties->setStorageParameters(options);
 
-		mainWindow.reset(new MainWindow());
+		mainWindow.reset(new MainWindow(pluginName));
 	}
 
 	void handleAsyncUpdate() override
 	{
-        juce::File fileToOpen;
+		juce::File fileToOpen;
 
-       #if JUCE_ANDROID || JUCE_IOS
-        fileToOpen = PluginGraph::getDefaultGraphDocumentOnMobile();
-       #else
-        for (int i = 0; i < getCommandLineParameterArray().size(); ++i)
-        {
-            fileToOpen = juce::File::getCurrentWorkingDirectory().getChildFile (getCommandLineParameterArray()[i]);
+#if JUCE_ANDROID || JUCE_IOS
+		fileToOpen = PluginGraph::getDefaultGraphDocumentOnMobile();
+#else
+		for (int i = 0; i < getCommandLineParameterArray().size(); ++i)
+		{
+			fileToOpen = juce::File::getCurrentWorkingDirectory().getChildFile(getCommandLineParameterArray()[i]);
 
-            if (fileToOpen.existsAsFile())
-                break;
-        }
-       #endif
+			if (fileToOpen.existsAsFile())
+				break;
+		}
+#endif
 
-        if (! fileToOpen.existsAsFile())
-        {
-            juce::RecentlyOpenedFilesList recentFiles;
-            recentFiles.restoreFromString (getAppProperties().getUserSettings()->getValue ("recentFilterGraphFiles"));
+		if (!fileToOpen.existsAsFile())
+		{
+			juce::RecentlyOpenedFilesList recentFiles;
+			recentFiles.restoreFromString(getAppProperties().getUserSettings()->getValue("recentFilterGraphFiles"));
 
-            if (recentFiles.getNumFiles() > 0)
-                fileToOpen = recentFiles.getFile (0);
-        }
+			if (recentFiles.getNumFiles() > 0)
+				fileToOpen = recentFiles.getFile(0);
+		}
 
-        //if (fileToOpen.existsAsFile())
-        //    if (auto* graph = mainWindow->graphHolder.get())
-        //        if (auto* ioGraph = graph->graph.get())
-        //            ioGraph->loadFrom (fileToOpen, true);
+		//if (fileToOpen.existsAsFile())
+		//    if (auto* graph = mainWindow->graphHolder.get())
+		//        if (auto* ioGraph = graph->graph.get())
+		//            ioGraph->loadFrom (fileToOpen, true);
 	}
 
 	void shutdown() override
@@ -193,13 +194,13 @@ public:
 	{
 		// This is called when the app is being asked to quit: you can ignore this
 		// request and let the app carry on running, or call quit() to allow the app to close.
-        if (mainWindow != nullptr)
-            mainWindow->tryToQuitApplication();
-        else
-            JUCEApplicationBase::quit();
+		if (mainWindow != nullptr)
+			mainWindow->tryToQuitApplication();
+		else
+			JUCEApplicationBase::quit();
 	}
 
-	void anotherInstanceStarted(const juce::String& ) override
+	void anotherInstanceStarted(const juce::String&) override
 	{
 		// When another instance of the app is launched while this one is running,
 		// this method is invoked, and the commandLine parameter tells you what

@@ -11,7 +11,7 @@ class MainWindow : public juce::DocumentWindow,
 public:
     juce::AudioPluginFormatManager formatManager;
 
-	MainWindow();
+	MainWindow(juce::String);
 	~MainWindow() override;
 
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
@@ -31,6 +31,7 @@ public:
 	   you really have to override any DocumentWindow methods, make sure your
 	   subclass also calls the superclass's method.
 	*/
+	juce::String pluginName;
 	juce::KnownPluginList knownPluginList;
 	std::unique_ptr<PluginListWindow> pluginListWindow;
 
