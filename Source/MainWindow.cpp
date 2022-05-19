@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "PluginListWindow.h"
+#include "EditorWindow.h"
 
 class CustomPluginScanner : public juce::KnownPluginList::CustomScanner,
 	private juce::ChangeListener
@@ -188,7 +189,7 @@ MainWindow::MainWindow(juce::String pn)
 	*/
 
 
-	setVisible(true);
+	//setVisible(true);
 }
 
 MainWindow::~MainWindow()

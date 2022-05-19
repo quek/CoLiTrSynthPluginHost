@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 
+class EditorWindow;
 //==============================================================================
 /*
 	This component lives inside our window, and this is where you should put all
@@ -24,6 +25,7 @@ public:
 	void resized() override;
 
 	std::unique_ptr<juce::AudioPluginInstance> plugin;
+	std::unique_ptr<EditorWindow> editorWindow;
 private:
 	//==============================================================================
 	// Your private member variables go here...
@@ -32,7 +34,6 @@ private:
 
 	juce::KnownPluginList& knownPluginList;
 	juce::AudioPluginFormatManager& formatManager;
-	std::unique_ptr<juce::AudioProcessorEditor> editor;
 
 	void click();
 	void play();

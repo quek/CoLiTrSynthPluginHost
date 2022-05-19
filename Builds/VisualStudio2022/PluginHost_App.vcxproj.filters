@@ -325,7 +325,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\EditorComponent.cpp">
+      <Filter>PluginHost\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\CustomPluginListComponent.cpp">
+      <Filter>PluginHost\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Source\EditorWindow.cpp">
       <Filter>PluginHost\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Source\MainWindow.cpp">
@@ -1947,10 +1953,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\EditorComponent.h">
+      <Filter>PluginHost\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\CustomPluginListComponent.h">
       <Filter>PluginHost\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\Main.h">
+      <Filter>PluginHost\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\EditorWindow.h">
       <Filter>PluginHost\Source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MainWindow.h">

@@ -1,5 +1,6 @@
 #include <Windows.h>
 #include "MainComponent.h"
+#include "EditorWindow.h"
 
 void* edit(void* component) {
 	((MainComponent*)component)->edit();
@@ -121,10 +122,7 @@ MainComponent::MainComponent(
 
 MainComponent::~MainComponent()
 {
-	if (editor) {
-		removeChildComponent(editor.get());
-		editor.reset();
-	}
+	editorWindow = nullptr;
 	if (plugin) {
 		plugin->releaseResources();
 		plugin.reset();
@@ -150,9 +148,6 @@ void MainComponent::resized()
 	checkTheTimeButton.setBounds(10, 10, getWidth() - 20, 40);
 	timeLabel.setBounds(10, 60, getWidth() - 20, 40);
 
-	if (editor) {
-		setBounds(editor->getLocalBounds());
-	}
 }
 
 void MainComponent::click()
@@ -162,24 +157,23 @@ void MainComponent::click()
 }
 
 void MainComponent::edit() {
-	if (editor != nullptr) {
+	if (editorWindow != nullptr) {
 		return;
 	}
 	if (!plugin->hasEditor()) {
 		DBG("not hasEditor");
 		return;
 	}
-	auto x = plugin->createEditor();
-	if (x == nullptr) {
+	auto editor = plugin->createEditor();
+	if (editor == nullptr) {
 		DBG("createEditor NG");
 		return;
 	}
-	else {
-		DBG("createEditor OK");
+
+	if (editorWindow == nullptr) {
+		editorWindow.reset(new EditorWindow(*this, "TODO title", editor));
 	}
-	editor.reset(x);
-	addAndMakeVisible(*editor);
-	resized();
+	editorWindow->toFront(true);
 }
 
 void MainComponent::play() {
