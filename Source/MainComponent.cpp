@@ -8,7 +8,7 @@ void* edit(void* component) {
 
 void proc(MainComponent* component) {
 	std::string path("\\\\.\\pipe\\pluin-host");
-	path += std::to_string(getpid());
+	path += std::to_string(_getpid());
 	HANDLE hPipe = CreateFile(path.c_str(),
 		(GENERIC_READ | GENERIC_WRITE),
 		0,
@@ -162,6 +162,9 @@ void MainComponent::click()
 }
 
 void MainComponent::edit() {
+	if (editor != nullptr) {
+		return;
+	}
 	if (!plugin->hasEditor()) {
 		DBG("not hasEditor");
 		return;
