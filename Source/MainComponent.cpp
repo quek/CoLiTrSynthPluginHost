@@ -41,7 +41,8 @@ void proc(MainComponent* component) {
 		WORD writeLength = 0;
 		juce::MidiBuffer midiBuffer;
 		const int midiEventSize = 6;
-		juce::AudioBuffer<float> audioBuffer(4, 1024);
+		// TODO 適切なチャンネルサイズ
+		juce::AudioBuffer<float> audioBuffer(16, 1024);
 
 		auto loop = true;
 		while (loop && hPipe != INVALID_HANDLE_VALUE) {
@@ -86,8 +87,11 @@ void proc(MainComponent* component) {
 			case COMMAND_EFFECT: {
 				midiBuffer.clear();
 				audioBuffer.clear();
+				// TODO 指定したバイト読むまでループとかした方がいい
 				ReadFile(hPipe, audioBuffer.getWritePointer(0), 1024 * 4, (LPDWORD)&readLength, nullptr);
+				DBG("ReadFile L " << std::to_string(readLength));
 				ReadFile(hPipe, audioBuffer.getWritePointer(1), 1024 * 4, (LPDWORD)&readLength, nullptr);
+				DBG("ReadFile R " << std::to_string(readLength));
 				plugin->processBlock(audioBuffer, midiBuffer);
 				DBG(audioBuffer.getSample(0, 0));
 				DBG(audioBuffer.getSample(1, 0));
