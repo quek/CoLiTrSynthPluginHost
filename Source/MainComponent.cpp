@@ -28,71 +28,72 @@ void proc(MainComponent* component) {
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
 		NULL);
-	if (INVALID_HANDLE_VALUE == hPipe) {
-		DBG("Can not create file, as PIPE\r\n");
-	}
+	if (INVALID_HANDLE_VALUE != hPipe) {
+		byte buffer[1024 * 10];
+		WORD readLength = 0;
+		WORD writeLength = 0;
+		juce::MidiBuffer midiBuffer;
+		const int midiEventSize = 6;
+		juce::AudioBuffer<float> audioBuffer(2, 1024);
 
-	byte buffer[1024 * 10];
-	WORD readLength = 0;
-	WORD writeLength = 0;
-	juce::MidiBuffer midiBuffer;
-	const int midiEventSize = 6;
-	juce::AudioBuffer<float> audioBuffer(2, 1024);
-
-	auto loop = true;
-	while (loop) {
-		// ブロックする
-		ReadFile(hPipe, buffer, 1, (LPDWORD)&readLength, nullptr);
-		if (readLength == 0) {
-			continue;
-		}
-		auto command = buffer[0];
-		DBG("command " << buffer[0]);
-		switch (command) {
-		case 1: {
-			juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
-			break;
-		}
-		case 2: {
-			midiBuffer.clear();
-			ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
-			int len = buffer[1] * 0x100 + buffer[0];
-			if (len > 0) {
-				ReadFile(hPipe, buffer, len * midiEventSize, (LPDWORD)&readLength, nullptr);
-				for (int i = 0; i < len; ++i) {
-					byte event = buffer[i * midiEventSize];
-					int channel = buffer[i * midiEventSize + 1];
-					int note = buffer[i * midiEventSize + 2];
-					float velocity = buffer[i * midiEventSize + 3] / 127.0f;
-					int frame = buffer[i * midiEventSize + 5] * 0x100 + buffer[i * midiEventSize + 4];
-					switch (event) {
-					case 0x90:
-						midiBuffer.addEvent(juce::MidiMessage::noteOn(channel, note, velocity), frame);
-						break;
-					case 0x80:
-						midiBuffer.addEvent(juce::MidiMessage::noteOff(channel, note, velocity), frame);
-						break;
+		auto loop = true;
+		while (loop && hPipe != INVALID_HANDLE_VALUE) {
+			// ブロックする
+			ReadFile(hPipe, buffer, 1, (LPDWORD)&readLength, nullptr);
+			if (readLength == 0) {
+				continue;
+			}
+			auto command = buffer[0];
+			DBG("command " << buffer[0]);
+			switch (command) {
+			case 1: {
+				juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
+				break;
+			}
+			case 2: {
+				midiBuffer.clear();
+				ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
+				int len = buffer[1] * 0x100 + buffer[0];
+				if (len > 0) {
+					ReadFile(hPipe, buffer, len * midiEventSize, (LPDWORD)&readLength, nullptr);
+					for (int i = 0; i < len; ++i) {
+						byte event = buffer[i * midiEventSize];
+						int channel = buffer[i * midiEventSize + 1];
+						int note = buffer[i * midiEventSize + 2];
+						float velocity = buffer[i * midiEventSize + 3] / 127.0f;
+						int frame = buffer[i * midiEventSize + 5] * 0x100 + buffer[i * midiEventSize + 4];
+						switch (event) {
+						case 0x90:
+							midiBuffer.addEvent(juce::MidiMessage::noteOn(channel, note, velocity), frame);
+							break;
+						case 0x80:
+							midiBuffer.addEvent(juce::MidiMessage::noteOff(channel, note, velocity), frame);
+							break;
+						}
 					}
 				}
+				audioBuffer.clear();
+				component->plugin->processBlock(audioBuffer, midiBuffer);
+				DBG(audioBuffer.getSample(0, 0));
+				DBG(audioBuffer.getSample(1, 0));
+				WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+				break;
 			}
-			audioBuffer.clear();
-			component->plugin->processBlock(audioBuffer, midiBuffer);
-			DBG(audioBuffer.getSample(0, 0));
-			DBG(audioBuffer.getSample(1, 0));
-			WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
-			WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
-			break;
+			case 3: {
+				loop = false;
+				break;
+			}
+			case 4: {
+				juce::MessageManager::getInstance()->callFunctionOnMessageThread(openPluginListWindow, component);
+			}
+			}
 		}
-		case 3: {
-			loop = false;
-			break;
-		}
-		case 4: {
-			juce::MessageManager::getInstance()->callFunctionOnMessageThread(openPluginListWindow, component);
-		}
-		}
+		CloseHandle(hPipe);
 	}
-	CloseHandle(hPipe);
+	else {
+		DBG("Can not create file, as PIPE\r\n");
+	}
 	juce::MessageManager::getInstance()->callFunctionOnMessageThread(quit, component);
 }
 
