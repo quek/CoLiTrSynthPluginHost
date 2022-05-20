@@ -169,7 +169,7 @@ MainWindow::MainWindow(juce::String pn)
 	knownPluginList.addChangeListener(this);
 
 	setUsingNativeTitleBar(true);
-	setContentOwned(new MainComponent(pluginName, formatManager, knownPluginList), true);
+	setContentOwned(new MainComponent(*this, pluginName, formatManager, knownPluginList), true);
 
 #if JUCE_IOS || JUCE_ANDROID
 	setFullScreen(true);

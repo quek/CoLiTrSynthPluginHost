@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 
+class MainWindow;
 class EditorWindow;
 //==============================================================================
 /*
@@ -13,6 +14,7 @@ class MainComponent : public juce::Component
 public:
 	//==============================================================================
 	MainComponent(
+		MainWindow&,
 		juce::String& pluginName,
 		juce::AudioPluginFormatManager& formatManager,
 		juce::KnownPluginList& knownPluginList
@@ -21,6 +23,7 @@ public:
 
 	//==============================================================================
 	void edit();
+	void quit();
 	void paint(juce::Graphics&) override;
 	void resized() override;
 
@@ -29,6 +32,7 @@ public:
 private:
 	//==============================================================================
 	// Your private member variables go here...
+	MainWindow& owner;
 	juce::TextButton checkTheTimeButton;
 	juce::Label timeLabel;
 

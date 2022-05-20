@@ -1,9 +1,15 @@
 #include <Windows.h>
 #include "MainComponent.h"
 #include "EditorWindow.h"
+#include "MainWindow.h"
 
 void* edit(void* component) {
 	((MainComponent*)component)->edit();
+	return nullptr;
+}
+
+void* quit(void* component) {
+	((MainComponent*)component)->quit();
 	return nullptr;
 }
 
@@ -28,7 +34,8 @@ void proc(MainComponent* component) {
 	const int midiEventSize = 6;
 	juce::AudioBuffer<float> audioBuffer(2, 1024);
 
-	while (true) {
+	auto loop = true;
+	while (loop) {
 		// ÉuÉçÉbÉNÇ∑ÇÈ
 		ReadFile(hPipe, buffer, 1, (LPDWORD)&readLength, nullptr);
 		if (readLength == 0) {
@@ -37,10 +44,11 @@ void proc(MainComponent* component) {
 		auto command = buffer[0];
 		DBG("command " << buffer[0]);
 		switch (command) {
-		case 1:
+		case 1: {
 			juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
 			break;
-		case 2:
+		}
+		case 2: {
 			midiBuffer.clear();
 			ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
 			int len = buffer[1] * 0x100 + buffer[0];
@@ -70,16 +78,23 @@ void proc(MainComponent* component) {
 			WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
 			break;
 		}
+		case 3: {
+			loop = false;
+			break;
+		}
+		}
 	}
 	CloseHandle(hPipe);
+	juce::MessageManager::getInstance()->callFunctionOnMessageThread(quit, component);
 }
 
 //==============================================================================
 MainComponent::MainComponent(
+	MainWindow& mw,
 	juce::String& pluginName,
 	juce::AudioPluginFormatManager& fm,
 	juce::KnownPluginList& kpl
-) : formatManager(fm), knownPluginList(kpl)
+) : owner(mw), formatManager(fm), knownPluginList(kpl)
 {
 	addAndMakeVisible(checkTheTimeButton);
 	checkTheTimeButton.setButtonText("Check the time...");
@@ -174,6 +189,10 @@ void MainComponent::edit() {
 		editorWindow.reset(new EditorWindow(*this, "TODO title", editor));
 	}
 	editorWindow->toFront(true);
+}
+
+void MainComponent::quit() {
+	owner.tryToQuitApplication();
 }
 
 void MainComponent::play() {
