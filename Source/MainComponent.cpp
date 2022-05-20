@@ -139,11 +139,6 @@ MainComponent::MainComponent(
 
 	setSize(600, 400);
 
-
-	std::cout << knownPluginList.getNumTypes() << std::endl;
-	// std::unique_ptr<juce::PluginDescription, std::default_delete<juce::PluginDescription>> desc = knownPluginList.getTypeForFile("C:\\Program Files\\Common Files\\VST3\\Vital.vst3");
-	//std::cout << desc << std::endl;
-
 	if (!pluginName.isEmpty()) {
 		auto types = knownPluginList.getTypes();
 		auto desc = std::find_if(types.begin(), types.end(), [pluginName](auto desc) {
