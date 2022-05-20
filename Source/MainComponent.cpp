@@ -13,6 +13,11 @@ void* quit(void* component) {
 	return nullptr;
 }
 
+void* openPluginListWindow(void* component) {
+	((MainComponent*)component)->openPluginListWindow();
+	return nullptr;
+}
+
 void proc(MainComponent* component) {
 	std::string path("\\\\.\\pipe\\pluin-host");
 	path += std::to_string(_getpid());
@@ -81,6 +86,9 @@ void proc(MainComponent* component) {
 		case 3: {
 			loop = false;
 			break;
+		}
+		case 4: {
+			juce::MessageManager::getInstance()->callFunctionOnMessageThread(openPluginListWindow, component);
 		}
 		}
 	}
@@ -189,6 +197,10 @@ void MainComponent::edit() {
 		editorWindow.reset(new EditorWindow(*this, "TODO title", editor));
 	}
 	editorWindow->toFront(true);
+}
+
+void MainComponent::openPluginListWindow() {
+	owner.openPluginListWindow();
 }
 
 void MainComponent::quit() {

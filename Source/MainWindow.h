@@ -15,6 +15,7 @@ public:
 	~MainWindow() override;
 
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
+	void openPluginListWindow();
     void tryToQuitApplication();
 
 	void closeButtonPressed() override

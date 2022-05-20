@@ -23,6 +23,7 @@ public:
 
 	//==============================================================================
 	void edit();
+	void openPluginListWindow();
 	void quit();
 	void paint(juce::Graphics&) override;
 	void resized() override;

@@ -39,6 +39,7 @@ public:
 	void closeButtonPressed() override
 	{
 		owner.pluginListWindow = nullptr;
+		owner.tryToQuitApplication();
 	}
 
 private:

@@ -178,16 +178,9 @@ MainWindow::MainWindow(juce::String pn)
 	centreWithSize(getWidth(), getHeight());
 #endif
 
-	setTopLeftPosition(60, 60);
-
-
-	/*
-	// ŒŸØ‚Ì‚½‚ß‚Æ‚è‚ ‚¦‚¸‚±‚±‚ÅŠJ‚­
-	if (pluginListWindow == nullptr)
-		pluginListWindow.reset(new PluginListWindow(*this, formatManager));
-	pluginListWindow->toFront(true);
-	*/
-
+	if (pluginName.isEmpty()) {
+		openPluginListWindow();
+	}
 
 	//setVisible(true);
 }
@@ -221,6 +214,13 @@ void MainWindow::changeListenerCallback(juce::ChangeBroadcaster* changed)
 			getAppProperties().saveIfNeeded();
 		}
 	}
+}
+
+void MainWindow::openPluginListWindow() {
+	if (pluginListWindow == nullptr) {
+		pluginListWindow.reset(new PluginListWindow(*this, formatManager));
+	}
+	pluginListWindow->toFront(true);
 }
 
 void MainWindow::tryToQuitApplication()
