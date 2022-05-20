@@ -18,7 +18,14 @@ void* openPluginListWindow(void* component) {
 	return nullptr;
 }
 
+const byte COMMAND_INSTRUMENT = 1;
+const byte COMMAND_EFFECT = 2;
+const byte COMMAND_MANAGE = 3;
+const byte COMMAND_EDIT = 4;
+const byte COMMAND_QUIT = 5;
+
 void proc(MainComponent* component) {
+	auto plugin = component->plugin.get();
 	std::string path("\\\\.\\pipe\\pluin-host");
 	path += std::to_string(_getpid());
 	HANDLE hPipe = CreateFile(path.c_str(),
@@ -34,7 +41,7 @@ void proc(MainComponent* component) {
 		WORD writeLength = 0;
 		juce::MidiBuffer midiBuffer;
 		const int midiEventSize = 6;
-		juce::AudioBuffer<float> audioBuffer(2, 1024);
+		juce::AudioBuffer<float> audioBuffer(4, 1024);
 
 		auto loop = true;
 		while (loop && hPipe != INVALID_HANDLE_VALUE) {
@@ -46,11 +53,7 @@ void proc(MainComponent* component) {
 			auto command = buffer[0];
 			DBG("command " << buffer[0]);
 			switch (command) {
-			case 1: {
-				juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
-				break;
-			}
-			case 2: {
+			case COMMAND_INSTRUMENT: {
 				midiBuffer.clear();
 				ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
 				int len = buffer[1] * 0x100 + buffer[0];
@@ -73,19 +76,35 @@ void proc(MainComponent* component) {
 					}
 				}
 				audioBuffer.clear();
-				component->plugin->processBlock(audioBuffer, midiBuffer);
+				plugin->processBlock(audioBuffer, midiBuffer);
 				DBG(audioBuffer.getSample(0, 0));
 				DBG(audioBuffer.getSample(1, 0));
 				WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
 				break;
 			}
-			case 3: {
-				loop = false;
+			case COMMAND_EFFECT: {
+				midiBuffer.clear();
+				audioBuffer.clear();
+				ReadFile(hPipe, audioBuffer.getWritePointer(0), 1024 * 4, (LPDWORD)&readLength, nullptr);
+				ReadFile(hPipe, audioBuffer.getWritePointer(1), 1024 * 4, (LPDWORD)&readLength, nullptr);
+				plugin->processBlock(audioBuffer, midiBuffer);
+				DBG(audioBuffer.getSample(0, 0));
+				DBG(audioBuffer.getSample(1, 0));
+				WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
 				break;
 			}
-			case 4: {
+			case COMMAND_MANAGE: {
 				juce::MessageManager::getInstance()->callFunctionOnMessageThread(openPluginListWindow, component);
+			}
+			case COMMAND_EDIT: {
+				juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
+				break;
+			}
+			case COMMAND_QUIT: {
+				loop = false;
+				break;
 			}
 			}
 		}
@@ -136,12 +155,11 @@ MainComponent::MainComponent(
 			DBG("after createPluginInstance " << " :[" << errorMessage << "]");
 			plugin->enableAllBuses();
 			plugin->prepareToPlay(48000, 1024);
+
+			std::thread t(proc, this);
+			t.detach();
 		}
 	}
-
-	std::thread t(proc, this);
-	t.detach();
-
 }
 
 MainComponent::~MainComponent()
