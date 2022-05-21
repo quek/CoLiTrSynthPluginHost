@@ -137,7 +137,6 @@ MainComponent::MainComponent(
 ) : owner(mw), formatManager(fm), knownPluginList(kpl)
 {
 	auto pluginName = pn.trimCharactersAtStart("\"").trimCharactersAtEnd("\"");
-	juce::Logger::getCurrentLogger()->writeToLog(pluginName + "MainComponent");
 
 	addAndMakeVisible(checkTheTimeButton);
 	checkTheTimeButton.setButtonText("Check the time...");
@@ -148,25 +147,15 @@ MainComponent::MainComponent(
 	timeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 	timeLabel.setJustificationType(juce::Justification::centred);
 
-	setSize(600, 400);
-
-
-	// std::this_thread::sleep_for(std::chrono::seconds(30));
-
-
 	if (!pluginName.isEmpty()) {
 		auto types = knownPluginList.getTypes();
 		auto desc = std::find_if(types.begin(), types.end(), [pluginName](auto desc) {
 			return desc.name == pluginName; });
-		juce::Logger::getCurrentLogger()->writeToLog("after find_if");
-		if (desc) {
-			juce::Logger::getCurrentLogger()->writeToLog("befre createPluginInstance");
+		if (desc != types.end()) {
 			std::cout << desc->descriptiveName << std::endl;
 			juce::String errorMessage;
-			juce::Logger::getCurrentLogger()->writeToLog("befre createPluginInstance");
 			plugin = formatManager.createPluginInstance(*desc, 48000, 1024,
 				errorMessage);
-			juce::Logger::getCurrentLogger()->writeToLog("after createPluginInstance");
 			DBG("after createPluginInstance " << " :[" << errorMessage << "]");
 			juce::Logger::getCurrentLogger()->writeToLog(errorMessage);
 			plugin->enableAllBuses();
