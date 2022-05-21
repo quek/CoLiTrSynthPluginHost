@@ -28,13 +28,21 @@ void proc(MainComponent* component) {
 	auto plugin = component->plugin.get();
 	std::string path("\\\\.\\pipe\\pluin-host");
 	path += std::to_string(_getpid());
-	HANDLE hPipe = CreateFile(path.c_str(),
-		(GENERIC_READ | GENERIC_WRITE),
-		0,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL);
+	HANDLE hPipe;
+	for (int i = 0; i < 10; ++i) {
+		hPipe = CreateFile(path.c_str(),
+			(GENERIC_READ | GENERIC_WRITE),
+			0,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL);
+		if (hPipe != INVALID_HANDLE_VALUE) {
+			break;
+		}
+		juce::Logger::getCurrentLogger()->writeToLog(juce::String(juce::CharPointer_UTF8("パイプ開けません")));
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 	if (INVALID_HANDLE_VALUE != hPipe) {
 		byte buffer[1024 * 10];
 		WORD readLength = 0;
@@ -123,11 +131,14 @@ void proc(MainComponent* component) {
 //==============================================================================
 MainComponent::MainComponent(
 	MainWindow& mw,
-	juce::String& pluginName,
+	juce::String& pn,
 	juce::AudioPluginFormatManager& fm,
 	juce::KnownPluginList& kpl
 ) : owner(mw), formatManager(fm), knownPluginList(kpl)
 {
+	auto pluginName = pn.trimCharactersAtStart("\"").trimCharactersAtEnd("\"");
+	juce::Logger::getCurrentLogger()->writeToLog(pluginName + "MainComponent");
+
 	addAndMakeVisible(checkTheTimeButton);
 	checkTheTimeButton.setButtonText("Check the time...");
 	checkTheTimeButton.onClick = [this] { click(); };
@@ -139,24 +150,34 @@ MainComponent::MainComponent(
 
 	setSize(600, 400);
 
+
+	// std::this_thread::sleep_for(std::chrono::seconds(30));
+
+
 	if (!pluginName.isEmpty()) {
 		auto types = knownPluginList.getTypes();
 		auto desc = std::find_if(types.begin(), types.end(), [pluginName](auto desc) {
 			return desc.name == pluginName; });
+		juce::Logger::getCurrentLogger()->writeToLog("after find_if");
 		if (desc) {
+			juce::Logger::getCurrentLogger()->writeToLog("befre createPluginInstance");
 			std::cout << desc->descriptiveName << std::endl;
-
-
 			juce::String errorMessage;
-
+			juce::Logger::getCurrentLogger()->writeToLog("befre createPluginInstance");
 			plugin = formatManager.createPluginInstance(*desc, 48000, 1024,
 				errorMessage);
+			juce::Logger::getCurrentLogger()->writeToLog("after createPluginInstance");
 			DBG("after createPluginInstance " << " :[" << errorMessage << "]");
+			juce::Logger::getCurrentLogger()->writeToLog(errorMessage);
 			plugin->enableAllBuses();
 			plugin->prepareToPlay(48000, 1024);
 
 			std::thread t(proc, this);
 			t.detach();
+		}
+		else
+		{
+			juce::Logger::getCurrentLogger()->writeToLog(juce::String("プラグインがない ") + pluginName);
 		}
 	}
 }

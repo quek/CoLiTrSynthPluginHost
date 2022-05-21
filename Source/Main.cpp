@@ -118,7 +118,14 @@ class PluginHostApplication : public juce::JUCEApplication, private juce::AsyncU
 {
 public:
 	//==============================================================================
-	PluginHostApplication() {}
+	PluginHostApplication() :
+		logFile_(
+			juce::String(getenv("APPDATA")) + "\\CoLiTrSynth\\PluginHost.log"
+		),
+		logger_(logFile_, "Hello")
+	{
+		juce::Logger::setCurrentLogger(&logger_);
+	}
 
 	const juce::String getApplicationName() override { return ProjectInfo::projectName; }
 	const juce::String getApplicationVersion() override { return ProjectInfo::versionString; }
@@ -187,6 +194,7 @@ public:
 		mainWindow = nullptr; // (deletes our window)
 		appProperties = nullptr;
 		juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
+		juce::Logger::setCurrentLogger(nullptr);
 	}
 
 	//==============================================================================
@@ -214,6 +222,9 @@ public:
 	*/
 
 	std::unique_ptr<juce::ApplicationProperties> appProperties;
+
+	juce::File logFile_;
+	juce::FileLogger logger_;
 private:
 	std::unique_ptr<MainWindow> mainWindow;
 	std::unique_ptr<PluginScannerSubprocess> storedScannerSubprocess;
