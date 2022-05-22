@@ -166,7 +166,7 @@ MainComponent::MainComponent(
 		}
 		else
 		{
-			juce::Logger::getCurrentLogger()->writeToLog(juce::String("プラグインがない ") + pluginName);
+			juce::Logger::getCurrentLogger()->writeToLog(juce::String(juce::CharPointer_UTF8("プラグインがない ")) + pluginName);
 		}
 	}
 }
