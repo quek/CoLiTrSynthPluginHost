@@ -1,7 +1,7 @@
 #include "EditorWindow.h"
 #include "MainComponent.h"
 
-EditorWindow::EditorWindow(MainComponent& mw, juce::String title, juce::AudioProcessorEditor* editor)
+EditorWindow::EditorWindow(MainComponent& mw, juce::String& title, juce::AudioProcessorEditor* editor)
 	: DocumentWindow(title,
 		juce::LookAndFeel::getDefaultLookAndFeel().findColour(juce::ResizableWindow::backgroundColourId),
 		juce::DocumentWindow::minimiseButton | juce::DocumentWindow::closeButton),
@@ -10,6 +10,7 @@ EditorWindow::EditorWindow(MainComponent& mw, juce::String title, juce::AudioPro
 	setContentOwned(editor, true);
 	setResizable(editor->isResizable(), false);
 	setVisible(true);
+	toFront(true);
 }
 
 EditorWindow::~EditorWindow()

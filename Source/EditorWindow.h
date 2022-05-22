@@ -6,7 +6,7 @@ class MainComponent;
 class EditorWindow : public juce::DocumentWindow
 {
 public:
-	EditorWindow(MainComponent&, juce::String, juce::AudioProcessorEditor*);
+	EditorWindow(MainComponent&, juce::String&, juce::AudioProcessorEditor*);
 
 	~EditorWindow() override;
 

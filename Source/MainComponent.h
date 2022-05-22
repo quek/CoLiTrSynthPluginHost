@@ -39,6 +39,7 @@ private:
 
 	juce::KnownPluginList& knownPluginList;
 	juce::AudioPluginFormatManager& formatManager;
+	juce::String pluginName_;
 
 	void click();
 	void play();

@@ -136,7 +136,7 @@ MainComponent::MainComponent(
 	juce::KnownPluginList& kpl
 ) : owner(mw), formatManager(fm), knownPluginList(kpl)
 {
-	auto pluginName = pn.trimCharactersAtStart("\"").trimCharactersAtEnd("\"");
+	pluginName_ = pn.trimCharactersAtStart("\"").trimCharactersAtEnd("\"");
 
 	addAndMakeVisible(checkTheTimeButton);
 	checkTheTimeButton.setButtonText("Check the time...");
@@ -147,10 +147,10 @@ MainComponent::MainComponent(
 	timeLabel.setColour(juce::Label::textColourId, juce::Colours::white);
 	timeLabel.setJustificationType(juce::Justification::centred);
 
-	if (!pluginName.isEmpty()) {
+	if (!pluginName_.isEmpty()) {
 		auto types = knownPluginList.getTypes();
-		auto desc = std::find_if(types.begin(), types.end(), [pluginName](auto desc) {
-			return desc.name == pluginName; });
+		auto desc = std::find_if(types.begin(), types.end(), [this](auto desc) {
+			return desc.name == pluginName_; });
 		if (desc != types.end()) {
 			std::cout << desc->descriptiveName << std::endl;
 			juce::String errorMessage;
@@ -166,7 +166,7 @@ MainComponent::MainComponent(
 		}
 		else
 		{
-			juce::Logger::getCurrentLogger()->writeToLog(juce::String(juce::CharPointer_UTF8("プラグインがない ")) + pluginName);
+			juce::Logger::getCurrentLogger()->writeToLog(juce::String(juce::CharPointer_UTF8("プラグインがない ")) + pluginName_);
 		}
 	}
 }
@@ -222,9 +222,8 @@ void MainComponent::edit() {
 	}
 
 	if (editorWindow == nullptr) {
-		editorWindow.reset(new EditorWindow(*this, "TODO title", editor));
+		editorWindow.reset(new EditorWindow(*this, pluginName_, editor));
 	}
-	editorWindow->toFront(true);
 }
 
 void MainComponent::openPluginListWindow() {
