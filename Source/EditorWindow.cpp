@@ -1,6 +1,5 @@
 #include "EditorWindow.h"
 #include "MainComponent.h"
-#include "EditorComponent.h"
 
 EditorWindow::EditorWindow(MainComponent& mw, juce::String title, juce::AudioProcessorEditor* editor)
 	: DocumentWindow(title,
@@ -8,12 +7,8 @@ EditorWindow::EditorWindow(MainComponent& mw, juce::String title, juce::AudioPro
 		juce::DocumentWindow::minimiseButton | juce::DocumentWindow::closeButton),
 	owner(mw)
 {
-	setContentOwned(new EditorComponent(editor), true);
-
-	setResizable(true, false);
-	setResizeLimits(300, 400, 800, 1500);
-	setTopLeftPosition(60, 60);
-
+	setContentOwned(editor, true);
+	setResizable(editor->isResizable(), false);
 	setVisible(true);
 }
 
