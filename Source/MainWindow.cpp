@@ -156,7 +156,8 @@ MainWindow::MainWindow(juce::String pn)
 	: juce::DocumentWindow(juce::JUCEApplication::getInstance()->getApplicationName(),
 		juce::Desktop::getInstance().getDefaultLookAndFeel()
 		.findColour(juce::ResizableWindow::backgroundColourId),
-		juce::DocumentWindow::allButtons)
+		juce::DocumentWindow::allButtons,
+		false)
 	, pluginName(pn)
 {
 	formatManager.addDefaultFormats();
