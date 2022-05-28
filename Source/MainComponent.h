@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Windows.h>
 #include <JuceHeader.h>
 
 class MainWindow;
@@ -27,9 +28,12 @@ public:
 	void quit();
 	void paint(juce::Graphics&) override;
 	void resized() override;
+	void getState();
+	void setState();
 
 	std::unique_ptr<juce::AudioPluginInstance> plugin;
 	std::unique_ptr<EditorWindow> editorWindow;
+	HANDLE hPipe;
 private:
 	//==============================================================================
 	// Your private member variables go here...

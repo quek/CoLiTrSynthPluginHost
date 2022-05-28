@@ -18,6 +18,16 @@ void* openPluginListWindow(void* component) {
 	return nullptr;
 }
 
+void* getState(void* component) {
+	((MainComponent*)component)->getState();
+	return nullptr;
+}
+
+void* setState(void* component) {
+	((MainComponent*)component)->setState();
+	return nullptr;
+}
+
 const byte COMMAND_INSTRUMENT = 1;
 const byte COMMAND_EFFECT = 2;
 const byte COMMAND_MANAGE = 3;
@@ -121,20 +131,13 @@ void proc(MainComponent* component) {
 				break;
 			}
 			case COMMAND_GET_STATE: {
-				juce::MemoryBlock mb;
-				plugin->getStateInformation(mb);
-				buffer[1] = static_cast<byte>(mb.getSize() / 0x100);
-				buffer[0] = static_cast<byte>(mb.getSize() % 0x100);
-				WriteFile(hPipe, buffer, 2, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&writeLength, nullptr);
+				component->hPipe = hPipe;
+				juce::MessageManager::getInstance()->callFunctionOnMessageThread(getState, component);
 				break;
 			}
 			case COMMAND_SET_STATE: {
-				ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
-				int len = buffer[1] * 0x100 + buffer[0];
-				juce::MemoryBlock mb(len);
-				ReadFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&readLength, nullptr);
-				plugin->setStateInformation(mb.getData(), (int)mb.getSize());
+				component->hPipe = hPipe;
+				juce::MessageManager::getInstance()->callFunctionOnMessageThread(setState, component);
 				break;
 			}
 			}
@@ -251,6 +254,27 @@ void MainComponent::openPluginListWindow() {
 
 void MainComponent::quit() {
 	owner.tryToQuitApplication();
+}
+
+void MainComponent::getState() {
+	byte buffer[2];
+	DWORD writeLength;
+	juce::MemoryBlock mb;
+	plugin->getStateInformation(mb);
+	buffer[1] = static_cast<byte>(mb.getSize() / 0x100);
+	buffer[0] = static_cast<byte>(mb.getSize() % 0x100);
+	WriteFile(hPipe, buffer, 2, (LPDWORD)&writeLength, nullptr);
+	WriteFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&writeLength, nullptr);
+}
+
+void MainComponent::setState() {
+	byte buffer[2];
+	DWORD readLength;
+	ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
+	int len = buffer[1] * 0x100 + buffer[0];
+	juce::MemoryBlock mb(len);
+	ReadFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&readLength, nullptr);
+	plugin->setStateInformation(mb.getData(), (int)mb.getSize());
 }
 
 void MainComponent::play() {
