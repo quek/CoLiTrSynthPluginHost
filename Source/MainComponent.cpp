@@ -23,6 +23,8 @@ const byte COMMAND_EFFECT = 2;
 const byte COMMAND_MANAGE = 3;
 const byte COMMAND_EDIT = 4;
 const byte COMMAND_QUIT = 5;
+const byte COMMAND_GET_STATE = 6;
+const byte COMMAND_SET_STATE = 7;
 
 void proc(MainComponent* component) {
 	auto plugin = component->plugin.get();
@@ -116,6 +118,23 @@ void proc(MainComponent* component) {
 			}
 			case COMMAND_QUIT: {
 				loop = false;
+				break;
+			}
+			case COMMAND_GET_STATE: {
+				juce::MemoryBlock mb;
+				plugin->getStateInformation(mb);
+				buffer[1] = static_cast<byte>(mb.getSize() / 0x100);
+				buffer[0] = static_cast<byte>(mb.getSize() % 0x100);
+				WriteFile(hPipe, buffer, 2, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&writeLength, nullptr);
+				break;
+			}
+			case COMMAND_SET_STATE: {
+				ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
+				int len = buffer[1] * 0x100 + buffer[0];
+				juce::MemoryBlock mb(len);
+				ReadFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&readLength, nullptr);
+				plugin->setStateInformation(mb.getData(), (int)mb.getSize());
 				break;
 			}
 			}
