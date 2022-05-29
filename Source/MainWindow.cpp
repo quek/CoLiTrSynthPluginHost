@@ -172,7 +172,7 @@ MainWindow::MainWindow(juce::String pn)
 		openPluginListWindow();
 	}
 
-	setVisible(true);
+	// setVisible(true);
 }
 
 MainWindow::~MainWindow()
