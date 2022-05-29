@@ -70,6 +70,10 @@ void proc(MainComponent* component) {
 		// TODO 適切なチャンネルサイズ
 		juce::AudioBuffer<float> audioBuffer(16, framesPerBuffer);
 
+		byte playing;
+		double bpm;
+		juce::int64 timeInSamples;
+
 		auto loop = true;
 		while (loop && hPipe != INVALID_HANDLE_VALUE) {
 			// ブロックする
@@ -79,15 +83,17 @@ void proc(MainComponent* component) {
 			}
 			auto command = buffer[0];
 			DBG("command " << buffer[0]);
-			switch (command) {
-			case COMMAND_INSTRUMENT: {
-				double bpm;
-				juce::int64 timeInSamples;
+			
+			if (command == COMMAND_INSTRUMENT || command == COMMAND_EFFECT) {
+				ReadFile(hPipe, &playing, 1, (LPDWORD)&readLength, nullptr);
 				ReadFile(hPipe, &bpm, 8, (LPDWORD)&readLength, nullptr);
 				ReadFile(hPipe, &timeInSamples, 8, (LPDWORD)&readLength, nullptr);
+				audioPlayHead.isPlaying = (playing != 0);
 				audioPlayHead.bpm = bpm;
 				audioPlayHead.timeInSamples = timeInSamples;
-
+			}
+			switch (command) {
+			case COMMAND_INSTRUMENT: {
 				midiBuffer.clear();
 				ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
 				int len = buffer[1] * 0x100 + buffer[0];
@@ -106,6 +112,10 @@ void proc(MainComponent* component) {
 						case 0x80:
 							midiBuffer.addEvent(juce::MidiMessage::noteOff(channel, note, velocity), frame);
 							break;
+						case 0xB0:
+							if (note == 0x7B) {
+								midiBuffer.addEvent(juce::MidiMessage::allNotesOff(channel), 0);
+							}
 						}
 					}
 				}
@@ -120,13 +130,6 @@ void proc(MainComponent* component) {
 				break;
 			}
 			case COMMAND_EFFECT: {
-				double bpm;
-				juce::int64 timeInSamples;
-				ReadFile(hPipe, &bpm, 8, (LPDWORD)&readLength, nullptr);
-				ReadFile(hPipe, &timeInSamples, 8, (LPDWORD)&readLength, nullptr);
-				audioPlayHead.bpm = bpm;
-				audioPlayHead.timeInSamples = timeInSamples;
-
 				midiBuffer.clear();
 				audioBuffer.clear();
 				// TODO 指定したバイト読むまでループとかした方がいい

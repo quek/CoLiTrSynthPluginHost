@@ -9,7 +9,7 @@ bool MyAudioPlayHead::getCurrentPosition(juce::AudioPlayHead::CurrentPositionInf
 	zerostruct(result);
 
 	result.bpm = bpm;
-	result.isPlaying = true;
+	result.isPlaying = isPlaying;
 	result.isRecording = false;
 	result.isLooping = false;
 	result.timeSigNumerator = 4;
