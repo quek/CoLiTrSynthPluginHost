@@ -1,6 +1,6 @@
 #include "MyAudioPlayHead.h"
 
-MyAudioPlayHead::MyAudioPlayHead() : timeInSamples(0)
+MyAudioPlayHead::MyAudioPlayHead() : bpm(120), timeInSamples(0)
 {
 }
 
@@ -8,7 +8,7 @@ bool MyAudioPlayHead::getCurrentPosition(juce::AudioPlayHead::CurrentPositionInf
 {
 	zerostruct(result);
 
-	result.bpm = 90.0;
+	result.bpm = bpm;
 	result.isPlaying = true;
 	result.isRecording = false;
 	result.isLooping = false;

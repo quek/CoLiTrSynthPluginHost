@@ -81,6 +81,13 @@ void proc(MainComponent* component) {
 			DBG("command " << buffer[0]);
 			switch (command) {
 			case COMMAND_INSTRUMENT: {
+				double bpm;
+				juce::int64 timeInSamples;
+				ReadFile(hPipe, &bpm, 8, (LPDWORD)&readLength, nullptr);
+				ReadFile(hPipe, &timeInSamples, 8, (LPDWORD)&readLength, nullptr);
+				audioPlayHead.bpm = bpm;
+				audioPlayHead.timeInSamples = timeInSamples;
+
 				midiBuffer.clear();
 				ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
 				int len = buffer[1] * 0x100 + buffer[0];
@@ -113,6 +120,13 @@ void proc(MainComponent* component) {
 				break;
 			}
 			case COMMAND_EFFECT: {
+				double bpm;
+				juce::int64 timeInSamples;
+				ReadFile(hPipe, &bpm, 8, (LPDWORD)&readLength, nullptr);
+				ReadFile(hPipe, &timeInSamples, 8, (LPDWORD)&readLength, nullptr);
+				audioPlayHead.bpm = bpm;
+				audioPlayHead.timeInSamples = timeInSamples;
+
 				midiBuffer.clear();
 				audioBuffer.clear();
 				// TODO 指定したバイト読むまでループとかした方がいい
