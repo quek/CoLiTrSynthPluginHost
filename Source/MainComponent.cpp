@@ -2,6 +2,7 @@
 #include "MainComponent.h"
 #include "EditorWindow.h"
 #include "MainWindow.h"
+#include "MyAudioPlayHead.h"
 
 void* edit(void* component) {
 	((MainComponent*)component)->edit();
@@ -38,6 +39,10 @@ const byte COMMAND_SET_STATE = 7;
 
 void proc(MainComponent* component) {
 	auto plugin = component->plugin.get();
+
+	MyAudioPlayHead audioPlayHead;
+	plugin->setPlayHead(&audioPlayHead);
+
 	std::string path("\\\\.\\pipe\\pluin-host");
 	path += std::to_string(_getpid());
 	HANDLE hPipe;
@@ -56,13 +61,14 @@ void proc(MainComponent* component) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 	if (INVALID_HANDLE_VALUE != hPipe) {
-		byte buffer[1024 * 10];
+		const int framesPerBuffer = 1024;
+		byte buffer[framesPerBuffer * 10];
 		WORD readLength = 0;
 		WORD writeLength = 0;
 		juce::MidiBuffer midiBuffer;
 		const int midiEventSize = 6;
 		// TODO 適切なチャンネルサイズ
-		juce::AudioBuffer<float> audioBuffer(16, 1024);
+		juce::AudioBuffer<float> audioBuffer(16, framesPerBuffer);
 
 		auto loop = true;
 		while (loop && hPipe != INVALID_HANDLE_VALUE) {
@@ -100,23 +106,27 @@ void proc(MainComponent* component) {
 				plugin->processBlock(audioBuffer, midiBuffer);
 				DBG(audioBuffer.getSample(0, 0));
 				DBG(audioBuffer.getSample(1, 0));
-				WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+
+				audioPlayHead.timeInSamples += framesPerBuffer;
 				break;
 			}
 			case COMMAND_EFFECT: {
 				midiBuffer.clear();
 				audioBuffer.clear();
 				// TODO 指定したバイト読むまでループとかした方がいい
-				ReadFile(hPipe, audioBuffer.getWritePointer(0), 1024 * 4, (LPDWORD)&readLength, nullptr);
+				ReadFile(hPipe, audioBuffer.getWritePointer(0), framesPerBuffer * 4, (LPDWORD)&readLength, nullptr);
 				DBG("ReadFile L " << std::to_string(readLength));
-				ReadFile(hPipe, audioBuffer.getWritePointer(1), 1024 * 4, (LPDWORD)&readLength, nullptr);
+				ReadFile(hPipe, audioBuffer.getWritePointer(1), framesPerBuffer * 4, (LPDWORD)&readLength, nullptr);
 				DBG("ReadFile R " << std::to_string(readLength));
 				plugin->processBlock(audioBuffer, midiBuffer);
 				DBG(audioBuffer.getSample(0, 0));
 				DBG(audioBuffer.getSample(1, 0));
-				WriteFile(hPipe, audioBuffer.getReadPointer(0), 1024 * 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, audioBuffer.getReadPointer(1), 1024 * 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+
+				audioPlayHead.timeInSamples += framesPerBuffer;
 				break;
 			}
 			case COMMAND_MANAGE: {
