@@ -2,7 +2,6 @@
 #include <JuceHeader.h>
 #include "Main.h"
 #include "MainWindow.h"
-#include "CustomPluginListComponent.h"
 
 class PluginListWindow : public juce::DocumentWindow
 {
@@ -16,7 +15,7 @@ public:
 		auto deadMansPedalFile = getAppProperties().getUserSettings()
 			->getFile().getSiblingFile("RecentlyCrashedPluginsList");
 
-		setContentOwned(new CustomPluginListComponent(pluginFormatManager,
+		setContentOwned(new juce::PluginListComponent(pluginFormatManager,
 			owner.knownPluginList,
 			deadMansPedalFile,
 			getAppProperties().getUserSettings(),

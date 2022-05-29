@@ -158,6 +158,7 @@ MainComponent::MainComponent(
 	juce::KnownPluginList& kpl
 ) : owner(mw), formatManager(fm), knownPluginList(kpl)
 {
+	setSize(400, 300);
 	pluginName_ = pn.trimCharactersAtStart("\"").trimCharactersAtEnd("\"");
 
 	addAndMakeVisible(checkTheTimeButton);
@@ -277,33 +278,3 @@ void MainComponent::setState() {
 	plugin->setStateInformation(mb.getData(), (int)mb.getSize());
 }
 
-void MainComponent::play() {
-	juce::MidiBuffer mb_;
-	auto last_pitch_ = 0;
-	auto sample_pos_ = 0;
-	std::unique_ptr<juce::AudioBuffer<float>> buffer(new juce::AudioBuffer<float>(2, 1024));
-	auto get_note_at = [](auto sample_rate, auto sample_pos) {
-		static std::vector<int> const pitches = { 60, 62, 64, 65, 67, 69, 71, 72 };
-		return pitches[((int)((sample_pos / sample_rate) * 2)) % pitches.size()];
-	};
-	for (int i = 0; i < 1; ++i) {
-		// 指定したサンプル位置でのノートを返す。
-
-		auto const pitch = get_note_at(48000, sample_pos_);
-
-		if (pitch != last_pitch_) {
-			if (last_pitch_ != -1) { mb_.addEvent(juce::MidiMessage::noteOff(1, last_pitch_, 0.5f), 0); }
-			mb_.addEvent(juce::MidiMessage::noteOn(1, pitch, 0.5f), 0);
-			last_pitch_ = pitch;
-		}
-
-		buffer->clear();
-
-		// プラグインのフレーム処理を実行
-		plugin->processBlock(*buffer, mb_);
-		DBG("buffer[0]" << buffer->getSample(0, 0));
-
-		mb_.clear();
-		sample_pos_ += 1024;
-	}
-}

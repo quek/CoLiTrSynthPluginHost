@@ -132,7 +132,6 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\CustomPluginListComponent.cpp" />
     <ClCompile Include="..\..\Source\EditorWindow.cpp" />
     <ClCompile Include="..\..\Source\MainWindow.cpp" />
     <ClCompile Include="..\..\Source\PluginListWindow.cpp" />
@@ -1632,7 +1631,6 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\CustomPluginListComponent.h" />
     <ClInclude Include="..\..\Source\Main.h" />
     <ClInclude Include="..\..\Source\EditorWindow.h" />
     <ClInclude Include="..\..\Source\MainWindow.h" />

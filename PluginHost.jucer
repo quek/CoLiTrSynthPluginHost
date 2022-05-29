@@ -4,10 +4,6 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="G24nmL" name="PluginHost">
     <GROUP id="{044FEFFE-A1D9-CC76-B7E0-7BEEF49AD054}" name="Source">
-      <FILE id="RnkTbt" name="EditorComponent.cpp" compile="1" resource="0"
-            file="Source/EditorComponent.cpp"/>
-      <FILE id="tbxWto" name="EditorComponent.h" compile="0" resource="0"
-            file="Source/EditorComponent.h"/>
       <FILE id="X1Uy3i" name="CustomPluginListComponent.cpp" compile="1"
             resource="0" file="Source/CustomPluginListComponent.cpp"/>
       <FILE id="ihQwpR" name="CustomPluginListComponent.h" compile="0" resource="0"

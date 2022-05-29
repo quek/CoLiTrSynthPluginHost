@@ -324,9 +324,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Source\CustomPluginListComponent.cpp">
-      <Filter>PluginHost\Source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Source\EditorWindow.cpp">
       <Filter>PluginHost\Source</Filter>
     </ClCompile>
@@ -1850,9 +1847,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Source\CustomPluginListComponent.h">
-      <Filter>PluginHost\Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Source\Main.h">
       <Filter>PluginHost\Source</Filter>
     </ClInclude>

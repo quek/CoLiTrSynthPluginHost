@@ -11,6 +11,109 @@
 #include "MainComponent.h"
 #include "PluginListWindow.h"
 
+// juce::PluginListComponent ‚©‚çŽg‚í‚ê‚é
+class PluginScannerSubprocess : private juce::ChildProcessWorker,
+	private juce::AsyncUpdater
+{
+public:
+	using ChildProcessWorker::initialiseFromCommandLine;
+
+private:
+	void handleMessageFromCoordinator(const juce::MemoryBlock& mb) override
+	{
+		if (mb.isEmpty())
+			return;
+
+		if (!doScan(mb))
+		{
+			{
+				const std::lock_guard<std::mutex> lock(mutex);
+				pendingBlocks.emplace(mb);
+			}
+
+			triggerAsyncUpdate();
+		}
+	}
+
+	void handleConnectionLost() override
+	{
+		juce::JUCEApplicationBase::quit();
+	}
+
+	void handleAsyncUpdate() override
+	{
+		for (;;)
+		{
+			const auto block = [&]() -> juce::MemoryBlock
+			{
+				const std::lock_guard<std::mutex> lock(mutex);
+
+				if (pendingBlocks.empty())
+					return {};
+
+				auto out = std::move(pendingBlocks.front());
+				pendingBlocks.pop();
+				return out;
+			}();
+
+			if (block.isEmpty())
+				return;
+
+			doScan(block);
+		}
+	}
+
+	bool doScan(const juce::MemoryBlock& block)
+	{
+		juce::AudioPluginFormatManager formatManager;
+		formatManager.addDefaultFormats();
+
+		juce::MemoryInputStream stream{ block, false };
+		const auto formatName = stream.readString();
+		const auto identifier = stream.readString();
+
+		juce::PluginDescription pd;
+		pd.fileOrIdentifier = identifier;
+		pd.uniqueId = pd.deprecatedUid = 0;
+
+		const auto matchingFormat = [&]() -> juce::AudioPluginFormat*
+		{
+			for (auto* format : formatManager.getFormats())
+				if (format->getName() == formatName)
+					return format;
+
+			return nullptr;
+		}();
+
+		if (matchingFormat == nullptr
+			|| (!juce::MessageManager::getInstance()->isThisTheMessageThread()
+				&& !matchingFormat->requiresUnblockedMessageThreadDuringCreation(pd)))
+		{
+			return false;
+		}
+
+		juce::OwnedArray<juce::PluginDescription> results;
+		matchingFormat->findAllTypesForFile(results, identifier);
+		sendPluginDescriptions(results);
+		return true;
+	}
+
+	void sendPluginDescriptions(const juce::OwnedArray<juce::PluginDescription>& results)
+	{
+		juce::XmlElement xml("LIST");
+
+		for (const auto& desc : results)
+			xml.addChildElement(desc->createXml().release());
+
+		const auto str = xml.toString();
+		sendMessageToCoordinator({ str.toRawUTF8(), str.getNumBytesAsUTF8() });
+	}
+
+	std::mutex mutex;
+	std::queue<juce::MemoryBlock> pendingBlocks;
+};
+
+
 
 //==============================================================================
 class PluginHostApplication : public juce::JUCEApplication
@@ -33,6 +136,14 @@ public:
 	//==============================================================================
 	void initialise(const juce::String& commandLine) override
 	{
+		auto scannerSubprocess = std::make_unique<PluginScannerSubprocess>();
+
+		if (scannerSubprocess->initialiseFromCommandLine(commandLine, processUID))
+		{
+			storedScannerSubprocess = std::move(scannerSubprocess);
+			return;
+		}
+
 		// This method is where you should put your application's initialisation code..
 		juce::PropertiesFile::Options options;
 		options.folderName = "CoLiTrSynth";
@@ -86,6 +197,7 @@ public:
 	juce::FileLogger logger_;
 private:
 	std::unique_ptr<MainWindow> mainWindow;
+	std::unique_ptr<PluginScannerSubprocess> storedScannerSubprocess;
 };
 
 static PluginHostApplication& getApp() { return *dynamic_cast<PluginHostApplication*>(juce::JUCEApplication::getInstance()); }

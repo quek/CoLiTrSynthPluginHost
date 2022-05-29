@@ -24,13 +24,6 @@ public:
 		juce::OwnedArray<juce::PluginDescription>& result,
 		const juce::String& fileOrIdentifier) override
 	{
-		if (scanInProcess)
-		{
-			superprocess = nullptr;
-			format.findAllTypesForFile(result, fileOrIdentifier);
-			return true;
-		}
-
 		if (superprocess == nullptr)
 		{
 			superprocess = std::make_unique<Superprocess>(*this);
@@ -136,8 +129,6 @@ private:
 
 	void changeListenerCallback(juce::ChangeBroadcaster*) override
 	{
-		if (auto* file = getAppProperties().getUserSettings())
-			scanInProcess = (file->getIntValue(scanModeKey) == 0);
 	}
 
 	std::unique_ptr<Superprocess> superprocess;
@@ -147,8 +138,6 @@ private:
 	bool gotResponse = false;
 	bool connectionLost = false;
 
-	std::atomic<bool> scanInProcess{ true };
-
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomPluginScanner)
 };
 
@@ -157,7 +146,7 @@ MainWindow::MainWindow(juce::String pn)
 		juce::Desktop::getInstance().getDefaultLookAndFeel()
 		.findColour(juce::ResizableWindow::backgroundColourId),
 		juce::DocumentWindow::allButtons,
-		false)
+		pn.isEmpty())
 	, pluginName(pn)
 {
 	formatManager.addDefaultFormats();
@@ -183,7 +172,7 @@ MainWindow::MainWindow(juce::String pn)
 		openPluginListWindow();
 	}
 
-	//setVisible(true);
+	setVisible(true);
 }
 
 MainWindow::~MainWindow()
