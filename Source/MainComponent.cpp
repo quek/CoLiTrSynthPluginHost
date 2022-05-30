@@ -289,17 +289,19 @@ void MainComponent::getState() {
 	DWORD writeLength;
 	juce::MemoryBlock mb;
 	plugin->getStateInformation(mb);
-	buffer[1] = static_cast<byte>(mb.getSize() / 0x100);
-	buffer[0] = static_cast<byte>(mb.getSize() % 0x100);
-	WriteFile(hPipe, buffer, 2, (LPDWORD)&writeLength, nullptr);
+	buffer[0] = static_cast<byte>(mb.getSize() & 0xff);
+	buffer[1] = static_cast<byte>((mb.getSize() >> 8) & 0xff);
+	buffer[2] = static_cast<byte>((mb.getSize() >> 16) & 0xff);
+	buffer[3] = static_cast<byte>((mb.getSize() >> 24) & 0xff);
+	WriteFile(hPipe, buffer, 4, (LPDWORD)&writeLength, nullptr);
 	WriteFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&writeLength, nullptr);
 }
 
 void MainComponent::setState() {
-	byte buffer[2];
+	byte buffer[4];
 	DWORD readLength;
-	ReadFile(hPipe, buffer, 2, (LPDWORD)&readLength, nullptr);
-	int len = buffer[1] * 0x100 + buffer[0];
+	ReadFile(hPipe, buffer, 4, (LPDWORD)&readLength, nullptr);
+	int len = (buffer[3] << 24)+ (buffer[2] << 16) + (buffer[1] << 8) + buffer[0];
 	juce::MemoryBlock mb(len);
 	ReadFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&readLength, nullptr);
 	plugin->setStateInformation(mb.getData(), (int)mb.getSize());
