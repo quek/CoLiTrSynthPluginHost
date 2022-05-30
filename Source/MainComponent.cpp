@@ -83,7 +83,7 @@ void proc(MainComponent* component) {
 			}
 			auto command = buffer[0];
 			DBG("command " << buffer[0]);
-			
+
 			if (command == COMMAND_INSTRUMENT || command == COMMAND_EFFECT) {
 				ReadFile(hPipe, &playing, 1, (LPDWORD)&readLength, nullptr);
 				ReadFile(hPipe, &bpm, 8, (LPDWORD)&readLength, nullptr);
@@ -150,7 +150,9 @@ void proc(MainComponent* component) {
 				juce::MessageManager::getInstance()->callFunctionOnMessageThread(openPluginListWindow, component);
 			}
 			case COMMAND_EDIT: {
-				juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
+				juce::MessageManager::getInstance()->callAsync([component]() {
+					juce::MessageManager::getInstance()->callFunctionOnMessageThread(edit, component);
+					});
 				break;
 			}
 			case COMMAND_QUIT: {
@@ -285,7 +287,7 @@ void MainComponent::quit() {
 }
 
 void MainComponent::getState() {
-	byte buffer[2];
+	byte buffer[4];
 	DWORD writeLength;
 	juce::MemoryBlock mb;
 	plugin->getStateInformation(mb);
@@ -301,7 +303,7 @@ void MainComponent::setState() {
 	byte buffer[4];
 	DWORD readLength;
 	ReadFile(hPipe, buffer, 4, (LPDWORD)&readLength, nullptr);
-	int len = (buffer[3] << 24)+ (buffer[2] << 16) + (buffer[1] << 8) + buffer[0];
+	int len = (buffer[3] << 24) + (buffer[2] << 16) + (buffer[1] << 8) + buffer[0];
 	juce::MemoryBlock mb(len);
 	ReadFile(hPipe, mb.getData(), (DWORD)mb.getSize(), (LPDWORD)&readLength, nullptr);
 	plugin->setStateInformation(mb.getData(), (int)mb.getSize());
