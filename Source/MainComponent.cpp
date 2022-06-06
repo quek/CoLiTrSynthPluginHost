@@ -82,7 +82,6 @@ void proc(MainComponent* component) {
 				continue;
 			}
 			auto command = buffer[0];
-			DBG("command " << buffer[0]);
 
 			if (command == COMMAND_INSTRUMENT || command == COMMAND_EFFECT) {
 				ReadFile(hPipe, &playing, 1, (LPDWORD)&readLength, nullptr);
@@ -121,8 +120,6 @@ void proc(MainComponent* component) {
 				}
 				audioBuffer.clear();
 				plugin->processBlock(audioBuffer, midiBuffer);
-				DBG(audioBuffer.getSample(0, 0));
-				DBG(audioBuffer.getSample(1, 0));
 				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 
