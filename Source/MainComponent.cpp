@@ -159,6 +159,9 @@ void proc(MainComponent* component) {
 			case COMMAND_GET_STATE: {
 				component->hPipe = hPipe;
 				juce::MessageManager::getInstance()->callFunctionOnMessageThread(getState, component);
+				{
+					DBG("latency " << plugin->getLatencySamples());
+				}
 				break;
 			}
 			case COMMAND_SET_STATE: {
