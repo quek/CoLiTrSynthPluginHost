@@ -4,6 +4,10 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="G24nmL" name="PluginHost">
     <GROUP id="{044FEFFE-A1D9-CC76-B7E0-7BEEF49AD054}" name="Source">
+      <FILE id="WlDuOx" name="MyAudioPlayHead.cpp" compile="1" resource="0"
+            file="Source/MyAudioPlayHead.cpp"/>
+      <FILE id="rCUb2B" name="MyAudioPlayHead.h" compile="0" resource="0"
+            file="Source/MyAudioPlayHead.h"/>
       <FILE id="w1By6y" name="Main.h" compile="0" resource="0" file="Source/Main.h"/>
       <FILE id="BlyxZJ" name="EditorWindow.cpp" compile="1" resource="0"
             file="Source/EditorWindow.cpp"/>
