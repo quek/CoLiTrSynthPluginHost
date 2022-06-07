@@ -12,7 +12,6 @@ bool MyAudioPlayHead::getCurrentPosition(juce::AudioPlayHead::CurrentPositionInf
 	result.bpm = bpm;
 	result.isPlaying = isPlaying;
 	result.isRecording = false;
-	result.isLooping = false;
 	result.timeSigNumerator = 4;
 	result.timeSigDenominator = 4;
 	result.frameRate = AudioPlayHead::fps30;
@@ -24,6 +23,8 @@ bool MyAudioPlayHead::getCurrentPosition(juce::AudioPlayHead::CurrentPositionInf
 	// TODO Ç±ÇÍÇ†Ç¡ÇƒÇÈÅH Ç±ÇÍê›íËÇµÇ»Ç¢Ç∆ Piapro Studio ÇÃçƒê∂Ç™êiÇ‹Ç»Ç¢ÅB
 	result.ppqPosition = result.timeInSeconds * result.bpm / 60.0;
 	result.ppqPositionOfLastBarStart = result.ppqPosition - std::floor(result.ppqPosition);
+
+	result.isLooping = false;
 	result.ppqLoopStart = 0;
 	result.ppqLoopEnd = 0;
 

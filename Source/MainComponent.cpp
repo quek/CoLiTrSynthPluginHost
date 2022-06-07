@@ -123,7 +123,6 @@ void proc(MainComponent* component) {
 				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 
-				audioPlayHead.timeInSamples += framesPerBuffer;
 				break;
 			}
 			case COMMAND_EFFECT: {
@@ -140,7 +139,6 @@ void proc(MainComponent* component) {
 				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 
-				audioPlayHead.timeInSamples += framesPerBuffer;
 				break;
 			}
 			case COMMAND_MANAGE: {
