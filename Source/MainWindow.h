@@ -11,7 +11,7 @@ class MainWindow : public juce::DocumentWindow,
 public:
     juce::AudioPluginFormatManager formatManager;
 
-	MainWindow(juce::String);
+	MainWindow(juce::StringArray);
 	~MainWindow() override;
 
     void changeListenerCallback (juce::ChangeBroadcaster*) override;

@@ -40,7 +40,7 @@ const byte COMMAND_SET_STATE = 7;
 void proc(MainComponent* component) {
 	auto plugin = component->plugin.get();
 
-	MyAudioPlayHead audioPlayHead;
+	MyAudioPlayHead audioPlayHead(component->getSampleRate());
 	plugin->setPlayHead(&audioPlayHead);
 
 	std::string path("\\\\.\\pipe\\pluin-host");
@@ -61,8 +61,8 @@ void proc(MainComponent* component) {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 	if (INVALID_HANDLE_VALUE != hPipe) {
-		const int framesPerBuffer = 1024;
-		byte buffer[framesPerBuffer * 10];
+		int framesPerBuffer = component->getBufferSize();
+		byte* buffer = new byte[framesPerBuffer * 10];// TODO “K“–‚·‚¬‚é
 		WORD readLength = 0;
 		WORD writeLength = 0;
 		juce::MidiBuffer midiBuffer;
@@ -87,9 +87,9 @@ void proc(MainComponent* component) {
 				ReadFile(hPipe, &playing, 1, (LPDWORD)&readLength, nullptr);
 				ReadFile(hPipe, &bpm, 8, (LPDWORD)&readLength, nullptr);
 				ReadFile(hPipe, &timeInSamples, 8, (LPDWORD)&readLength, nullptr);
-				audioPlayHead.isPlaying = (playing != 0);
-				audioPlayHead.bpm = bpm;
-				audioPlayHead.timeInSamples = timeInSamples;
+				audioPlayHead.isPlaying_ = (playing != 0);
+				audioPlayHead.bpm_ = bpm;
+				audioPlayHead.timeInSamples_ = timeInSamples;
 			}
 			switch (command) {
 			case COMMAND_INSTRUMENT: {
@@ -169,6 +169,7 @@ void proc(MainComponent* component) {
 			}
 			}
 		}
+		delete[] buffer;
 		CloseHandle(hPipe);
 	}
 	else {
@@ -182,8 +183,10 @@ MainComponent::MainComponent(
 	MainWindow& mw,
 	juce::String& pn,
 	juce::AudioPluginFormatManager& fm,
-	juce::KnownPluginList& kpl
-) : owner(mw), formatManager(fm), knownPluginList(kpl)
+	juce::KnownPluginList& kpl,
+	double sampleRate,
+	int bufferSize
+) : owner(mw), formatManager(fm), knownPluginList(kpl), sampleRate_(sampleRate), bufferSize_(bufferSize)
 {
 	setSize(400, 300);
 	pluginName_ = pn.trimCharactersAtStart("\"").trimCharactersAtEnd("\"");
@@ -204,12 +207,11 @@ MainComponent::MainComponent(
 		if (desc != types.end()) {
 			std::cout << desc->descriptiveName << std::endl;
 			juce::String errorMessage;
-			plugin = formatManager.createPluginInstance(*desc, 48000, 1024,
-				errorMessage);
+			plugin = formatManager.createPluginInstance(*desc, sampleRate_, bufferSize_, errorMessage);
 			DBG("after createPluginInstance " << " :[" << errorMessage << "]");
 			juce::Logger::getCurrentLogger()->writeToLog(errorMessage);
 			plugin->enableAllBuses();
-			plugin->prepareToPlay(48000, 1024);
+			plugin->prepareToPlay(sampleRate_, bufferSize_);
 
 			std::thread t(proc, this);
 			t.detach();

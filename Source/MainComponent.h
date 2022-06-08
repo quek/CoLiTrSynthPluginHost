@@ -18,7 +18,9 @@ public:
 		MainWindow&,
 		juce::String& pluginName,
 		juce::AudioPluginFormatManager& formatManager,
-		juce::KnownPluginList& knownPluginList
+		juce::KnownPluginList& knownPluginList,
+		double sampleRate,
+		int bufferSize
 	);
 	~MainComponent() override;
 
@@ -30,6 +32,8 @@ public:
 	void resized() override;
 	void getState();
 	void setState();
+	double getSampleRate() { return sampleRate_; }
+	int getBufferSize() { return bufferSize_; }
 
 	std::unique_ptr<juce::AudioPluginInstance> plugin;
 	std::unique_ptr<EditorWindow> editorWindow;
@@ -44,6 +48,8 @@ private:
 	juce::KnownPluginList& knownPluginList;
 	juce::AudioPluginFormatManager& formatManager;
 	juce::String pluginName_;
+	double sampleRate_;
+	int bufferSize_;
 
 	void click();
 

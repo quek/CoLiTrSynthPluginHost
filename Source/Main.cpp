@@ -154,7 +154,7 @@ public:
 		appProperties.reset(new juce::ApplicationProperties());
 		appProperties->setStorageParameters(options);
 
-		mainWindow.reset(new MainWindow(commandLine));
+		mainWindow.reset(new MainWindow(getCommandLineParameterArray()));
 	}
 
 	void shutdown() override

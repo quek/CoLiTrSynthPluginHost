@@ -4,11 +4,12 @@
 class MyAudioPlayHead : public juce::AudioPlayHead
 {
 public:
-    MyAudioPlayHead();
+    MyAudioPlayHead(double sampleRate);
     bool getCurrentPosition(juce::AudioPlayHead::CurrentPositionInfo& result) override;
 
-    bool isPlaying;
-    double bpm;
-    juce::int64 timeInSamples;
+    double sampleRate_;
+    bool isPlaying_;
+    double bpm_;
+    juce::int64 timeInSamples_;
 };
 

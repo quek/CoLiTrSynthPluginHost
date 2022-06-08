@@ -141,14 +141,35 @@ private:
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CustomPluginScanner)
 };
 
-MainWindow::MainWindow(juce::String pn)
+MainWindow::MainWindow(juce::StringArray args)
 	: juce::DocumentWindow(juce::JUCEApplication::getInstance()->getApplicationName(),
 		juce::Desktop::getInstance().getDefaultLookAndFeel()
 		.findColour(juce::ResizableWindow::backgroundColourId),
 		juce::DocumentWindow::allButtons,
-		pn.isEmpty())
-	, pluginName(pn)
+		args.isEmpty())
 {
+	double sampleRate = 0;
+	int bufferSize = 0;
+	auto iter = args.begin();
+	while (iter != args.end()) {
+		auto argName = *iter;
+		++iter;
+		auto argValue = *iter;
+		++iter;
+		if (argName == "--sample-rate") {
+			sampleRate = std::stod(argValue.toStdString().c_str());
+		}
+		else if (argName == "--buffer-size") {
+			bufferSize = std::stoi(argValue.toStdString().c_str());
+
+		}
+		else if (argName == "--plugin-name") {
+			pluginName = argValue;
+			pluginName.trimCharactersAtStart("\"");
+			pluginName.trimCharactersAtEnd("\"");
+		}
+	}
+	
 	formatManager.addDefaultFormats();
 
 	knownPluginList.setCustomScanner(std::make_unique<CustomPluginScanner>());
@@ -159,7 +180,7 @@ MainWindow::MainWindow(juce::String pn)
 	knownPluginList.addChangeListener(this);
 
 	setUsingNativeTitleBar(true);
-	setContentOwned(new MainComponent(*this, pluginName, formatManager, knownPluginList), true);
+	setContentOwned(new MainComponent(*this, pluginName, formatManager, knownPluginList, sampleRate, bufferSize), true);
 
 #if JUCE_IOS || JUCE_ANDROID
 	setFullScreen(true);
