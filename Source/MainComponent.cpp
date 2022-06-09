@@ -36,6 +36,8 @@ const byte COMMAND_EDIT = 4;
 const byte COMMAND_QUIT = 5;
 const byte COMMAND_GET_STATE = 6;
 const byte COMMAND_SET_STATE = 7;
+const byte COMMAND_GET_PARAMETERS = 8;
+const byte COMMAND_SET_PARAMETER = 9;
 
 void proc(MainComponent* component) {
 	auto plugin = component->plugin.get();
@@ -157,14 +159,58 @@ void proc(MainComponent* component) {
 			case COMMAND_GET_STATE: {
 				component->hPipe = hPipe;
 				juce::MessageManager::getInstance()->callFunctionOnMessageThread(getState, component);
-				{
-					DBG("latency " << plugin->getLatencySamples());
-				}
 				break;
 			}
 			case COMMAND_SET_STATE: {
 				component->hPipe = hPipe;
 				juce::MessageManager::getInstance()->callFunctionOnMessageThread(setState, component);
+				break;
+			}
+			case COMMAND_GET_PARAMETERS: {
+				DBG("latency " << plugin->getLatencySamples());
+				std::ostringstream s;
+				s << "(";
+				for (auto* parameter : plugin->getParameters()) {
+					s << "(" << std::to_string(parameter->getParameterIndex())
+						<< " \"" << parameter->getName(255).replace("\"", "\\\"")
+						<< "\" " << std::to_string(parameter->getValue())
+						<< " \"" << parameter->getCurrentValueAsText().replace("\"", "\\\"")
+						<< "\")";
+					DBG("P getName[" << parameter->getName(255)
+						<< "] getParameterIndex[" << parameter->getParameterIndex()
+						<< "] getValue[" << parameter->getValue()
+						<< "] getLabel[" << parameter->getLabel()
+						<< "] getCurrentValueAsText[" << parameter->getCurrentValueAsText()
+						<< "] getAllValueStrings[" << parameter->getAllValueStrings().joinIntoString(",")
+						<< "] getNumSteps[" << parameter->getNumSteps()
+						<< "] isDiscrete[" << std::to_string(parameter->isDiscrete())
+						<< "] isBoolean[" << std::to_string(parameter->isBoolean())
+						<< "] isOrientationInverted[" << std::to_string(parameter->isOrientationInverted())
+						<< "] isAutomatable[" << std::to_string(parameter->isAutomatable())
+						<< "] isMetaParameter[" << std::to_string(parameter->isMetaParameter())
+						<< "] getCategory[" << parameter->getCategory()
+						<< "]"
+					);
+					/*
+					kHs Gain
+P getName[Enabled] getParameterIndex[0] getValue[1] getLabel[] getCurrentValueAsText[On] getAllValueStrings[] getNumSteps[2147483647] isDiscrete[0] isBoolean[0] isOrientationInverted[0] isAutomatable[1] isMetaParameter[0] getCategory[0]
+P getName[Gain] getParameterIndex[1] getValue[0.1] getLabel[] getCurrentValueAsText[-24.00 dB] getAllValueStrings[] getNumSteps[2147483647] isDiscrete[0] isBoolean[0] isOrientationInverted[0] isAutomatable[1] isMetaParameter[0] getCategory[0]
+P getName[mode] getParameterIndex[2] getValue[0] getLabel[] getCurrentValueAsText[dB] getAllValueStrings[] getNumSteps[2147483647] isDiscrete[0] isBoolean[0] isOrientationInverted[0] isAutomatable[1] isMetaParameter[0] getCategory[0]
+					*/
+				}
+				s << ")";
+				std::string str = s.str();
+				int size = static_cast<int>(str.size());
+				WriteFile(hPipe, &size, 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, str.c_str(), size, (LPDWORD)&writeLength, nullptr);
+				break;
+			}
+			case COMMAND_SET_PARAMETER: {
+				int index;
+				float value;
+				ReadFile(hPipe, &index, sizeof(int), (LPDWORD)&readLength, nullptr);
+				ReadFile(hPipe, &value, sizeof(float), (LPDWORD)&readLength, nullptr);
+				plugin->getParameters()[index]->setValue(value);
 				break;
 			}
 			}
