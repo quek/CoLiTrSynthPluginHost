@@ -132,16 +132,13 @@ void proc(MainComponent* component) {
 			case COMMAND_EFFECT: {
 				midiBuffer.clear();
 				audioBuffer.clear();
-				// TODO 指定したバイト読むまでループとかした方がいい
-				ReadFile(hPipe, audioBuffer.getWritePointer(0), framesPerBuffer * 4, (LPDWORD)&readLength, nullptr);
-				DBG("ReadFile L " << std::to_string(readLength));
-				ReadFile(hPipe, audioBuffer.getWritePointer(1), framesPerBuffer * 4, (LPDWORD)&readLength, nullptr);
-				DBG("ReadFile R " << std::to_string(readLength));
+				for (int i = 0; i < totalNumInputChannels; ++i) {
+					ReadFile(hPipe, audioBuffer.getWritePointer(i), framesPerBuffer * 4, (LPDWORD)&readLength, nullptr);
+				}
 				plugin->processBlock(audioBuffer, midiBuffer);
-				DBG(audioBuffer.getSample(0, 0));
-				DBG(audioBuffer.getSample(1, 0));
-				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+				for (int i = 0; i < totalNumOutputChannels; ++i) {
+					WriteFile(hPipe, audioBuffer.getReadPointer(i), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+				}
 
 				break;
 			}
@@ -173,8 +170,6 @@ void proc(MainComponent* component) {
 				WriteFile(hPipe, &latency, 4, (LPDWORD)&writeLength, nullptr);
 				int inputBusCount = plugin->getBusCount(true);
 				int outputBusCount = plugin->getBusCount(false);
-				int totalNumInputChannels = plugin->getTotalNumInputChannels();
-				int totalNumOutputChannels = plugin->getTotalNumOutputChannels();
 				int mainBusNumInputChannels = plugin->getMainBusNumInputChannels();
 				int maiBusNumOutputChannels = plugin->getMainBusNumOutputChannels();
 				WriteFile(hPipe, &inputBusCount , 4, (LPDWORD)&writeLength, nullptr);
