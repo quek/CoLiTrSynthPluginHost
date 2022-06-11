@@ -171,10 +171,14 @@ void proc(MainComponent* component) {
 			case COMMAND_GET_PARAMETERS: {
 				int latency = plugin->getLatencySamples();
 				WriteFile(hPipe, &latency, 4, (LPDWORD)&writeLength, nullptr);
+				int inputBusCount = plugin->getBusCount(true);
+				int outputBusCount = plugin->getBusCount(false);
 				int totalNumInputChannels = plugin->getTotalNumInputChannels();
 				int totalNumOutputChannels = plugin->getTotalNumOutputChannels();
 				int mainBusNumInputChannels = plugin->getMainBusNumInputChannels();
 				int maiBusNumOutputChannels = plugin->getMainBusNumOutputChannels();
+				WriteFile(hPipe, &inputBusCount , 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &outputBusCount , 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, &totalNumInputChannels , 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, &totalNumOutputChannels , 4, (LPDWORD)&writeLength, nullptr);
 				WriteFile(hPipe, &mainBusNumInputChannels , 4, (LPDWORD)&writeLength, nullptr);
