@@ -124,9 +124,9 @@ void proc(MainComponent* component) {
 				}
 				audioBuffer.clear();
 				plugin->processBlock(audioBuffer, midiBuffer);
-				WriteFile(hPipe, audioBuffer.getReadPointer(0), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, audioBuffer.getReadPointer(1), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
-
+				for (int i = 0; i < totalNumOutputChannels; ++i) {
+					WriteFile(hPipe, audioBuffer.getReadPointer(i), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
+				}
 				break;
 			}
 			case COMMAND_EFFECT: {
