@@ -69,8 +69,10 @@ void proc(MainComponent* component) {
 		WORD writeLength = 0;
 		juce::MidiBuffer midiBuffer;
 		const int midiEventSize = 6;
-		// TODO 適切なチャンネルサイズ
-		juce::AudioBuffer<float> audioBuffer(16, framesPerBuffer);
+		int totalNumInputChannels = plugin->getTotalNumInputChannels();
+		int totalNumOutputChannels = plugin->getTotalNumOutputChannels();
+		int totalNumChannels = std::max(totalNumInputChannels, totalNumOutputChannels);
+		juce::AudioBuffer<float> audioBuffer(totalNumChannels, framesPerBuffer);
 
 		byte playing;
 		double bpm;
@@ -167,7 +169,16 @@ void proc(MainComponent* component) {
 				break;
 			}
 			case COMMAND_GET_PARAMETERS: {
-				DBG("latency " << plugin->getLatencySamples());
+				int latency = plugin->getLatencySamples();
+				WriteFile(hPipe, &latency, 4, (LPDWORD)&writeLength, nullptr);
+				int totalNumInputChannels = plugin->getTotalNumInputChannels();
+				int totalNumOutputChannels = plugin->getTotalNumOutputChannels();
+				int mainBusNumInputChannels = plugin->getMainBusNumInputChannels();
+				int maiBusNumOutputChannels = plugin->getMainBusNumOutputChannels();
+				WriteFile(hPipe, &totalNumInputChannels , 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &totalNumOutputChannels , 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &mainBusNumInputChannels , 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &maiBusNumOutputChannels , 4, (LPDWORD)&writeLength, nullptr);
 				std::ostringstream s;
 				s << "(";
 				for (auto* parameter : plugin->getParameters()) {
