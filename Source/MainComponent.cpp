@@ -171,13 +171,21 @@ void proc(MainComponent* component) {
 				int inputBusCount = plugin->getBusCount(true);
 				int outputBusCount = plugin->getBusCount(false);
 				int mainBusNumInputChannels = plugin->getMainBusNumInputChannels();
-				int maiBusNumOutputChannels = plugin->getMainBusNumOutputChannels();
-				WriteFile(hPipe, &inputBusCount , 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, &outputBusCount , 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, &totalNumInputChannels , 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, &totalNumOutputChannels , 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, &mainBusNumInputChannels , 4, (LPDWORD)&writeLength, nullptr);
-				WriteFile(hPipe, &maiBusNumOutputChannels , 4, (LPDWORD)&writeLength, nullptr);
+				int mainBusNumOutputChannels = plugin->getMainBusNumOutputChannels();
+				WriteFile(hPipe, &inputBusCount, 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &outputBusCount, 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &totalNumInputChannels, 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &totalNumOutputChannels, 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &mainBusNumInputChannels, 4, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &mainBusNumOutputChannels, 4, (LPDWORD)&writeLength, nullptr);
+
+				byte acceptsMidi = plugin->acceptsMidi() ? 1 : 0;
+				byte producesMidi = plugin->producesMidi() ? 1 : 0;
+				byte isMidiEffect = plugin->isMidiEffect() ? 1 : 0;
+				WriteFile(hPipe, &acceptsMidi, 1, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &producesMidi, 1, (LPDWORD)&writeLength, nullptr);
+				WriteFile(hPipe, &isMidiEffect, 1, (LPDWORD)&writeLength, nullptr);
+
 				std::ostringstream s;
 				s << "(";
 				for (auto* parameter : plugin->getParameters()) {
