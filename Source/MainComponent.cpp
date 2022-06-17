@@ -127,6 +127,31 @@ void proc(MainComponent* component) {
 				for (int i = 0; i < totalNumOutputChannels; ++i) {
 					WriteFile(hPipe, audioBuffer.getReadPointer(i), framesPerBuffer * 4, (LPDWORD)&writeLength, nullptr);
 				}
+				if (plugin->producesMidi()) {
+					int index = 2;
+					for (auto itr = midiBuffer.begin(); itr != midiBuffer.end(); ++itr) {
+						auto meta = *itr;
+						auto midi = meta.getMessage();
+						if (midi.isNoteOnOrOff()) {
+							buffer[index++] = midi.isNoteOn() ? 0x90 : 0x80;
+							buffer[index++] = static_cast<byte>(midi.getChannel());
+							buffer[index++] = static_cast<byte>(midi.getNoteNumber());
+							buffer[index++] = midi.getVelocity();
+							buffer[index++] = meta.samplePosition % 0x100;
+							buffer[index++] = static_cast<byte>(meta.samplePosition / 0x100);
+						}
+						else if (midi.isAllNotesOff()) {
+							buffer[index++] = 0xB0;
+							buffer[index++] = static_cast<byte>(midi.getChannel());
+							buffer[index++] = 0x7B;
+							index += 3;
+						}
+					}
+					int numEvents = index / midiEventSize;
+					buffer[0] = numEvents % 0x100;
+					buffer[1] = static_cast<byte>(numEvents / 0x100);
+					WriteFile(hPipe, buffer, index, (LPDWORD)&writeLength, nullptr);
+				}
 				break;
 			}
 			case COMMAND_EFFECT: {
