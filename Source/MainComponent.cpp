@@ -78,13 +78,19 @@ void proc(MainComponent* component) {
 		double bpm;
 		juce::int64 timeInSamples;
 
+		int retryCount = 0;
 		auto loop = true;
 		while (loop && hPipe != INVALID_HANDLE_VALUE) {
 			// ƒuƒƒbƒN‚·‚é
 			ReadFile(hPipe, buffer, 1, (LPDWORD)&readLength, nullptr);
 			if (readLength == 0) {
+				if (++retryCount > 10) {
+					loop = false;
+				}
+				std::this_thread::sleep_for(std::chrono::seconds(1));
 				continue;
 			}
+			retryCount = 0;
 			auto command = buffer[0];
 
 			if (command == COMMAND_INSTRUMENT || command == COMMAND_EFFECT) {
