@@ -5,28 +5,33 @@ MyAudioPlayHead::MyAudioPlayHead(double sampleRate) : sampleRate_(sampleRate), b
 {
 }
 
-bool MyAudioPlayHead::getCurrentPosition(juce::AudioPlayHead::CurrentPositionInfo& result)
+juce::Optional<juce::AudioPlayHead::PositionInfo> MyAudioPlayHead::getPosition() const
 {
-	zerostruct(result);
+	auto position = juce::AudioPlayHead::PositionInfo();
 
-	result.bpm = bpm_;
-	result.isPlaying = isPlaying_;
-	result.isRecording = false;
-	result.timeSigNumerator = 4;
-	result.timeSigDenominator = 4;
-	result.frameRate = AudioPlayHead::fps30;
-	result.timeInSamples = timeInSamples_;
-	result.timeInSeconds = timeInSamples_ / sampleRate_;
-	// TODO Ç±ÇÍÇÊÇ≠ÇÌÇ©ÇÒÇ»Ç¢
-	result.editOriginTime = result.timeInSeconds;
+	position.setBpm(bpm_);
+	position.setIsPlaying(isPlaying_);
+	position.setIsRecording(false);
 
-	// TODO Ç±ÇÍÇ†Ç¡ÇƒÇÈÅH Ç±ÇÍê›íËÇµÇ»Ç¢Ç∆ Piapro Studio ÇÃçƒê∂Ç™êiÇ‹Ç»Ç¢ÅB
-	result.ppqPosition = result.timeInSeconds * result.bpm / 60.0;
-	result.ppqPositionOfLastBarStart = result.ppqPosition - std::floor(result.ppqPosition);
+	auto ts = juce::AudioPlayHead::TimeSignature();
+	ts.numerator = 4;
+	ts.denominator = 4;
+	position.setTimeSignature(ts);
+	position.setFrameRate(juce::AudioPlayHead::fps30);
+	position.setTimeInSamples(timeInSamples_);
+	auto timeInSeconds = timeInSamples_ / sampleRate_;
+	position.setTimeInSeconds(timeInSeconds);
+	position.setEditOriginTime(timeInSeconds);
 
-	result.isLooping = false;
-	result.ppqLoopStart = 0;
-	result.ppqLoopEnd = 0;
+	auto  ppqPosition = timeInSeconds * bpm_ / 60.0;
+	position.setPpqPosition(ppqPosition);
+	position.setPpqPositionOfLastBarStart(ppqPosition - std::floor(ppqPosition));
 
-	return true;
+	position.setIsLooping(false);
+	auto loopPoints = juce::AudioPlayHead::LoopPoints();
+	loopPoints.ppqStart = 0.0;
+	loopPoints.ppqEnd = 0.0;
+	position.setLoopPoints(loopPoints);
+
+	return position;
 }

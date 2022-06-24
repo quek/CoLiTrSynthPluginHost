@@ -5,7 +5,7 @@ class MyAudioPlayHead : public juce::AudioPlayHead
 {
 public:
     MyAudioPlayHead(double sampleRate);
-    bool getCurrentPosition(juce::AudioPlayHead::CurrentPositionInfo& result) override;
+    juce::Optional<juce::AudioPlayHead::PositionInfo> getPosition() const override;
 
     double sampleRate_;
     bool isPlaying_;
